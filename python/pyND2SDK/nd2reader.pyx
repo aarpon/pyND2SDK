@@ -2,21 +2,35 @@
 #
 # Uses the Nikon SDK for accessing data and metadata from ND2 files.
 
-cimport nd2reader
-import settings  # Paths
-
 from libc.stddef cimport wchar_t
+cimport c_nd2ReadSDK as SDK
 
-def pLIM_FileOpenForRead(filename):
-	# Make sure the string is unicode
-	filename = unicode(filename)
-	cdef Py_ssize_t length
-	cdef wchar_t *my_wchars = PyUnicode_AsWideCharString(filename, &length)
+def LIM_FileOpenForRead(filename):
+    """
+    Opens the file 'filename' for reading and returns the file handle.
+    :param filename: with file full patg
+    :type filename: unicode string
+    :return: file handle
+    :rtype: int
+    """
 
-	wprintf(my_wchars)
-	print("Length:", <long>length)
-	print("Null End:", my_wchars[7] == 0)
+    # Make sure the string is unicode
+    filename = unicode(filename)
+    cdef Py_ssize_t length
+    cdef wchar_t *w_filename = SDK.PyUnicode_AsWideCharString(filename, &length)
 
-	print(Lim_FileOpenForRead(my_wchars))
+    # Open the file and
+    file_handle = SDK.Lim_FileOpenForRead(w_filename)
 
- 
+    return file_handle
+
+def LIM_FileClose(file_handle):
+    """
+    Closes the file with given handle.
+    :param file_handle: file handle returned by LIM_FileOpenForRead()
+    :type file_handle: int
+    :return: result of closing the file
+    :rtype: int
+    """
+
+    return SDK.Lim_FileClose(file_handle)

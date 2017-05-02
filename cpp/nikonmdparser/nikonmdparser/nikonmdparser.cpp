@@ -53,6 +53,10 @@ public:
 			return false;
 		}
 
+		// Print the attributes
+		std::cout << "File contains " << m_Attr.uiSequenceCount << " series." << std::endl;
+		std::cout << "Each series has dimentions: " << m_Attr.uiWidth << "x" << m_Attr.uiHeight << std::endl;
+
 		return true;
 	}
 
@@ -66,7 +70,9 @@ public:
 int main(int argc, char *argv[])
 {
 
-	std::wstring filename = L"F:/Data/openBIS_test_data/microscopy/Experiment 2/Captured for 4.nd2";
+	//std::wstring filename = L"F:/Data/openBIS_test_data/microscopy/Experiment 2/Captured for 4.nd2";
+	std::wstring filename = L"F:/Data/openBIS_test_data/microscopy/Performance_Issue/beads001.nd2";
+
 	ND2File n = ND2File(filename);
 
 	// Try parsing the file
