@@ -5,17 +5,21 @@
 from libc.stddef cimport wchar_t
 
 cdef extern from "Python.h":
-    wchar_t*PyUnicode_AsWideCharString(object, Py_ssize_t *)
+    wchar_t* PyUnicode_AsWideCharString(object, Py_ssize_t *)
 
 cdef extern from "wchar.h":
     int wprintf(const wchar_t *, ...)
 
 cdef extern from "nd2ReadSDK.h":
+
     # File handle
-    int LIMFILEHANDLE
+    ctypedef int LIMFILEHANDLE
 
     # Result of operation
-    int LIMRESULT
+    ctypedef int LIMRESULT
+
+    # Wide char string (python unicode will be cast to it)
+    ctypedef wchar_t* LPCWSTR "const wchar_t*"
 
     # Struct LIMATTRIBUTES
     ctypedef struct LIMATTRIBUTES:
@@ -32,10 +36,13 @@ cdef extern from "nd2ReadSDK.h":
         int uiQuality         # Compression quality: 0 (worst) - 100 (best)
 
     # Open file for reading (and return file handle)
-    int Lim_FileOpenForRead(wchar_t*wszFileName)
+    LIMRESULT Lim_FileOpenForRead(LPCWSTR wszFileName)
 
     # Close the file with given handle
-    int Lim_FileClose(int file_handle)
+    LIMRESULT Lim_FileClose(LIMFILEHANDLE file_handle)
 
     # Get the attributes
-    int Lim_FileGetAttributes(int hFile, LIMATTRIBUTES* attr)
+    LIMRESULT Lim_FileGetAttributes(LIMFILEHANDLE hFile, LIMATTRIBUTES* attr)
+
+    # Get the metadata
+    LIMRESULT Lim_FileGetAttributes(LIMFILEHANDLE hFile, LIMATTRIBUTES* attr)

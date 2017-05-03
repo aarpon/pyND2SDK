@@ -6,7 +6,7 @@ from pyND2SDK.settings import SDKIncludePath, SDKLibPath
 
 setup(
     ext_modules=cythonize([
-        Extension("nd2reader", ["nd2reader.pyx"],
+        Extension("pyND2SDK.nd2reader", ["nd2reader.pyx"],
                   include_dirs=[SDKIncludePath],
                   libraries=['v6_w32_nd2ReadSDK'],
                   library_dirs=[SDKLibPath]
