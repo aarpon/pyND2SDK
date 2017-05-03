@@ -9,5 +9,12 @@ if __name__ == "__main__":
         print('Could not open ND2 file!')
     else:
         print('ND2 file opened successfully!')
+
+        # Retrieve the attributes
+        attr = nd2reader.Lim_FileGetAttributes(file_handle)
+        print(attr)
+
+        # Close the file
         result = nd2reader.LIM_FileClose(file_handle)
         print(result)
+

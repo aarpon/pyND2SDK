@@ -34,3 +34,17 @@ def LIM_FileClose(file_handle):
     """
 
     return SDK.Lim_FileClose(file_handle)
+
+def Lim_FileGetAttributes(file_handle):
+    """
+    Retrieves the file attributes or throws an Exception if it failed.
+    :param file_handle: handle of the open file.
+    :type file_handle: int
+    :return: LIM_ATTRIBUTES structure
+    :rtype: struct
+    """
+    cdef SDK.LIMATTRIBUTES attr;
+    if SDK.Lim_FileGetAttributes(file_handle, &attr) !=0:
+        raise Exception("Could not retrieve the file attributes!")
+
+    return attr
