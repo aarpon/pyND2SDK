@@ -4,7 +4,7 @@
 
 from libc.stddef cimport wchar_t
 
-def pLIM_FileOpenForRead(filename):
+def LIM_FileOpenForRead(filename):
     """
     Opens the file 'filename' for reading and returns the file handle.
     :param filename: with file full patg
@@ -19,11 +19,11 @@ def pLIM_FileOpenForRead(filename):
     cdef wchar_t *w_filename = PyUnicode_AsWideCharString(filename, &length)
 
     # Open the file and
-    file_handle = Lim_FileOpenForRead(w_filename)
+    file_handle = _Lim_FileOpenForRead(w_filename)
 
     return file_handle
 
-def pLIM_FileClose(file_handle):
+def LIM_FileClose(file_handle):
     """
     Closes the file with given handle.
     :param file_handle: file handle returned by LIM_FileOpenForRead()
@@ -32,9 +32,9 @@ def pLIM_FileClose(file_handle):
     :rtype: int
     """
 
-    return Lim_FileClose(file_handle)
+    return _Lim_FileClose(file_handle)
 
-def pLim_FileGetAttributes(file_handle):
+def Lim_FileGetAttributes(file_handle):
     """
     Retrieves the file attributes or throws an Exception if it failed.
     :param file_handle: handle of the open file.
@@ -43,7 +43,7 @@ def pLim_FileGetAttributes(file_handle):
     :rtype: struct
     """
     cdef LIMATTRIBUTES attr;
-    if Lim_FileGetAttributes(file_handle, &attr) !=0:
+    if _Lim_FileGetAttributes(file_handle, &attr) !=0:
         raise Exception("Could not retrieve the file attributes!")
 
     return attr

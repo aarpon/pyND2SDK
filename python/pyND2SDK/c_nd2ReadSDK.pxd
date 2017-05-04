@@ -58,11 +58,11 @@ cdef extern from "nd2ReadSDK.h":
         int uiQuality         # Compression quality: 0 (worst) - 100 (best)
 
     # Open file for reading (and return file handle)
-    LIMRESULT Lim_FileOpenForRead(LIMCWSTR wszFileName)
+    LIMRESULT _Lim_FileOpenForRead "Lim_FileOpenForRead"(LIMCWSTR wszFileName)
 
     # Close the file with given handle
-    LIMRESULT Lim_FileClose(LIMFILEHANDLE file_handle)
+    LIMRESULT _Lim_FileClose "Lim_FileClose"(LIMFILEHANDLE file_handle)
 
     # Get the attributes
-    LIMRESULT Lim_FileGetAttributes(LIMFILEHANDLE hFile, LIMATTRIBUTES* attr)
+    LIMRESULT _Lim_FileGetAttributes "Lim_FileGetAttributes"(LIMFILEHANDLE hFile, LIMATTRIBUTES* attr)
 
