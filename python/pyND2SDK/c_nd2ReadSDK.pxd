@@ -12,14 +12,36 @@ cdef extern from "wchar.h":
 
 cdef extern from "nd2ReadSDK.h":
 
+    # Constants (i.e. #DEFINEs)
+    #
+    # Defining them as enum allows declarations such as array[number]
+    enum: LIMMAXPICTUREPLANES
+
     # File handle
     ctypedef int LIMFILEHANDLE
 
     # Result of operation
     ctypedef int LIMRESULT
 
+    # Unsigned integer
+    ctypedef unsigned int LIMUINT
+
+    # Wide char
+    ctypedef wchar_t LIMWCHAR
+
     # Wide char string (python unicode will be cast to it)
-    ctypedef wchar_t* LPCWSTR "const wchar_t*"
+    ctypedef wchar_t* LIMWSTR
+
+    # Constant pointer to wide char string (python unicode will be cast to it)
+    ctypedef const wchar_t* LIMCWSTR
+
+    # Picture plane description
+    ctypedef struct LIMPICTUREPLANE_DESC:
+        unsigned int uiCompCount   # Number of physical components
+        unsigned int uiColorRGB    # RGB color for display
+        wchar_t wszName[256]       # Name for display
+        wchar_t wszOCName[256]     # Name of the Optical Configuration
+        double  dEmissionWL        # Emission wavelength
 
     # Struct LIMATTRIBUTES
     ctypedef struct LIMATTRIBUTES:
@@ -36,7 +58,7 @@ cdef extern from "nd2ReadSDK.h":
         int uiQuality         # Compression quality: 0 (worst) - 100 (best)
 
     # Open file for reading (and return file handle)
-    LIMRESULT Lim_FileOpenForRead(LPCWSTR wszFileName)
+    LIMRESULT Lim_FileOpenForRead(LIMCWSTR wszFileName)
 
     # Close the file with given handle
     LIMRESULT Lim_FileClose(LIMFILEHANDLE file_handle)
@@ -44,5 +66,3 @@ cdef extern from "nd2ReadSDK.h":
     # Get the attributes
     LIMRESULT Lim_FileGetAttributes(LIMFILEHANDLE hFile, LIMATTRIBUTES* attr)
 
-    # Get the metadata
-    LIMRESULT Lim_FileGetAttributes(LIMFILEHANDLE hFile, LIMATTRIBUTES* attr)

@@ -53,9 +53,19 @@ public:
 			return false;
 		}
 
-		// Print the attributes
+		// Print some attributes
 		std::cout << "File contains " << m_Attr.uiSequenceCount << " series." << std::endl;
 		std::cout << "Each series has dimentions: " << m_Attr.uiWidth << "x" << m_Attr.uiHeight << std::endl;
+
+		// Read the metadata (result is 0 on success)
+		if (Lim_FileGetMetadata(m_FileHandle, &m_Metadata) != 0)
+		{
+			std::cerr << "Could not read file metadata!" << std::endl;
+			return false;
+		}
+
+		// Print some metadata
+		std::cout << "Objective: " << wchart_to_string(m_Metadata.wszObjectiveName) << ";  M = " << m_Metadata.dObjectiveMag << "; NA = " << m_Metadata.dObjectiveNA << std::endl;
 
 		return true;
 	}
@@ -64,6 +74,16 @@ public:
 	{
 		if (m_FileHandle)
 			Lim_FileClose(m_FileHandle);
+	}
+
+	/**
+	Convert a wchar_t * array to a std::string.
+	*/
+	std::string wchart_to_string(wchar_t *wc)
+	{
+		std::wstring ws(wc);
+		std::string str(ws.begin(), ws.end());
+		return str;
 	}
 };
 
