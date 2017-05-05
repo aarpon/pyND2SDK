@@ -1,4 +1,4 @@
 /__pycache__/
 /build/
-*.c
 *.pyd
+/c_nd2ReadSDK.c
