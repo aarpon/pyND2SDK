@@ -37,6 +37,7 @@ void dump_LIMMETADATA_DESC_struct(LIMMETADATA_DESC *s)
 	printf("uiImageType         = %d\n", (LIMUINT)s->uiImageType);
 	printf("uiPlaneCount        = %d\n", (LIMUINT)s->uiPlaneCount);
 	printf("uiComponentCount    = %d\n", (LIMUINT)s->uiComponentCount);
+	printf("wszObjectiveName    = %ls\n", (LIMWSTR)s->wszObjectiveName);
 	// @todo Still missing: LIMPICTUREPLANE_DESC pPlanes[LIMMAXPICTUREPLANES];
 }
 
@@ -86,7 +87,8 @@ PyObject* LIMMETADATA_DESC_to_dict(LIMMETADATA_DESC *s)
     PyDict_SetItemString(d, "dProjectiveMag",       PyFloat_FromDouble((double)s->dProjectiveMag));
     PyDict_SetItemString(d, "uiPlaneCount",         PyLong_FromLong((long)s->uiPlaneCount));
     PyDict_SetItemString(d, "uiComponentCount",     PyLong_FromLong((long)s->uiComponentCount));
-    PyDict_SetItemString(d, "LIMPICTUREPLANE_DESC", PyLong_FromLong(0));
+    PyDict_SetItemString(d, "wszObjectiveName",     PyUnicode_FromWideChar((LIMWSTR)s->wszObjectiveName, -1));
+    PyDict_SetItemString(d, "LIMPICTUREPLANE_DESC", PyLong_FromLong(0));  // @todo Still missing!
 
     // Return
     return d;
