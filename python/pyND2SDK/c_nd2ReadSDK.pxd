@@ -10,6 +10,14 @@ cdef extern from "Python.h":
 cdef extern from "wchar.h":
     int wprintf(const wchar_t *, ...)
 
+cdef extern from "c_helper.h":
+
+    # DEBUG functions
+    void dump_LIMATTRIBUTES_struct(LIMATTRIBUTES *s)
+
+    # Structure to  dictionary functions
+    object LIMATTRIBUTES_to_dict(LIMATTRIBUTES *s)
+
 cdef extern from "nd2ReadSDK.h":
 
     # Constants (i.e. #DEFINEs)
@@ -27,35 +35,21 @@ cdef extern from "nd2ReadSDK.h":
     ctypedef unsigned int LIMUINT
 
     # Wide char
-    ctypedef wchar_t LIMWCHAR
+    ctypedef wchar_t LIMWCHAR "wchar_t"
 
     # Wide char string (python unicode will be cast to it)
-    ctypedef wchar_t* LIMWSTR
+    ctypedef wchar_t* LIMWSTR "wchar_t *"
 
     # Constant pointer to wide char string (python unicode will be cast to it)
-    ctypedef const wchar_t* LIMCWSTR
+    ctypedef const wchar_t* LIMCWSTR "const wchar_t *"
 
     # Picture plane description
     ctypedef struct LIMPICTUREPLANE_DESC:
-        unsigned int uiCompCount   # Number of physical components
-        unsigned int uiColorRGB    # RGB color for display
-        wchar_t wszName[256]       # Name for display
-        wchar_t wszOCName[256]     # Name of the Optical Configuration
-        double  dEmissionWL        # Emission wavelength
+        pass
 
     # Struct LIMATTRIBUTES
     ctypedef struct LIMATTRIBUTES:
-        int uiWidth           # Width of images
-        int uiWidthBytes      # Line length 4-byte aligned
-        int uiHeight          # Height of images
-        int uiComp            # Number of components
-        int uiBpcInMemory     # Bits per component 8 or 16
-        int uiBpcSignificant  # Bits per component used 8 .. 16
-        int uiSequenceCount   # Number of images in the sequence
-        int uiTileWidth       # If image is tiled: width of tile/strip or 0
-        int uiTileHeight      # If image is tiled: height of tile/strip or 0
-        int uiCompression     # Compression: 0 (lossless), 1 (lossy), 2 (None)
-        int uiQuality         # Compression quality: 0 (worst) - 100 (best)
+        pass
 
     # Open file for reading (and return file handle)
     LIMRESULT _Lim_FileOpenForRead "Lim_FileOpenForRead"(LIMCWSTR wszFileName)

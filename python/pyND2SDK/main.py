@@ -12,7 +12,6 @@ if __name__ == "__main__":
 
         # Retrieve the attributes
         attr = c_nd2ReadSDK.Lim_FileGetAttributes(file_handle)
-        print(attr)
 
         # Close the file
         result = c_nd2ReadSDK.LIM_FileClose(file_handle)
