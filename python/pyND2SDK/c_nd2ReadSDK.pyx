@@ -40,7 +40,7 @@ def Lim_FileGetAttributes(int file_handle):
     Retrieves the file attributes or throws an Exception if it failed.
     :param file_handle: handle of the open file.
     :type file_handle: int
-    :return: LIM_ATTRIBUTES structure mapped to a python dictionary
+    :return: LIMATTRIBUTES structure mapped to a python dictionary
     :rtype: dict
     """
     cdef LIMATTRIBUTES attr;
@@ -53,6 +53,28 @@ def Lim_FileGetAttributes(int file_handle):
     if DEBUG:
         import pprint
         dump_LIMATTRIBUTES_struct(&attr)
+        pprint.pprint(d)
+
+    return d
+
+def Lim_FileGetMetadata(int file_handle):
+    """
+    Retrieves the file metadata or throws an Exception if it failed.
+    :param file_handle: handle of the open file.
+    :type file_handle: int
+    :return: LIMMETADATA_DESC structure mapped to a python dictionary
+    :rtype: dict
+    """
+    cdef LIMMETADATA_DESC meta;
+    if _Lim_FileGetMetadata(file_handle, &meta) !=0:
+        raise Exception("Could not retrieve the file metadata!")
+
+    # Convert to dict
+    d = LIMMETADATA_DESC_to_dict(&meta)
+
+    if DEBUG:
+        import pprint
+        dump_LIMMETADATA_DESC_struct(&meta)
         pprint.pprint(d)
 
     return d

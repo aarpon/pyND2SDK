@@ -5,6 +5,7 @@
 #include <iostream>
 #include "nd2ReadSDK.h"
 #include <string>
+#include "helper.h"
 
 class ND2File
 {
@@ -53,9 +54,9 @@ public:
 			return false;
 		}
 
-		// Print some attributes
-		std::cout << "File contains " << m_Attr.uiSequenceCount << " series." << std::endl;
-		std::cout << "Each series has dimentions: " << m_Attr.uiWidth << "x" << m_Attr.uiHeight << std::endl;
+		// Print attributes
+		std::cout << "LIMATTRIBUTES:" << std::endl;
+		dump_LIMATTRIBUTES_struct(&m_Attr);
 
 		// Read the metadata (result is 0 on success)
 		if (Lim_FileGetMetadata(m_FileHandle, &m_Metadata) != 0)
@@ -64,8 +65,9 @@ public:
 			return false;
 		}
 
-		// Print some metadata
-		std::cout << "Objective: " << wchart_to_string(m_Metadata.wszObjectiveName) << ";  M = " << m_Metadata.dObjectiveMag << "; NA = " << m_Metadata.dObjectiveNA << std::endl;
+		// Print metadata
+		std::cout << std::endl << "LIMMETADATA_DESC:" << std::endl;
+		dump_LIMMETADATA_DESC_struct(&m_Metadata);
 
 		return true;
 	}
@@ -76,15 +78,6 @@ public:
 			Lim_FileClose(m_FileHandle);
 	}
 
-	/**
-	Convert a wchar_t * array to a std::string.
-	*/
-	std::string wchart_to_string(wchar_t *wc)
-	{
-		std::wstring ws(wc);
-		std::string str(ws.begin(), ws.end());
-		return str;
-	}
 };
 
 int main(int argc, char *argv[])
@@ -96,13 +89,9 @@ int main(int argc, char *argv[])
 	ND2File n = ND2File(filename);
 
 	// Try parsing the file
-	if (n.parse())
+	if (! n.parse())
 	{
-		std::cout << "File opened successfully." << std::endl;
-	}
-	else
-	{
-		std::cout << "Could not open file!." << std::endl;
+		std::cout << "Could not open or parse the file!." << std::endl;
 	}
 
 	// Close the file (if open)
