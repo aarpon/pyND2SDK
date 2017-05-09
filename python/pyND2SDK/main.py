@@ -19,6 +19,9 @@ if __name__ == "__main__":
         # Retrieve the text info
         info = c_nd2ReadSDK.Lim_FileGetTextinfo(file_handle)
 
+        # Retrieve the experimnt info
+        exp = c_nd2ReadSDK.Lim_FileGetExperiment(file_handle)
+
         # Close the file
         result = c_nd2ReadSDK.LIM_FileClose(file_handle)
         print(result)

@@ -84,7 +84,7 @@ def Lim_FileGetTextinfo(int file_handle):
     Retrieves the text info or throws an Exception if it failed.
     :param file_handle: handle of the open file.
     :type file_handle: int
-    :return: LIMMETADATA_DESC structure mapped to a python dictionary
+    :return: LIMTEXTINFO structure mapped to a python dictionary
     :rtype: dict
     """
     cdef LIMTEXTINFO info;
@@ -97,6 +97,28 @@ def Lim_FileGetTextinfo(int file_handle):
     if DEBUG:
         import pprint
         dump_LIMTEXTINFO_struct(&info)
+        pprint.pprint(d)
+
+    return d
+
+def Lim_FileGetExperiment(int file_handle):
+    """
+    Retrieves the experiment info or throws an Exception if it failed.
+    :param file_handle: handle of the open file.
+    :type file_handle: int
+    :return: LIMMETADATA_DESC structure mapped to a python dictionary
+    :rtype: dict
+    """
+    cdef LIMEXPERIMENT exp;
+    if _Lim_FileGetExperiment(file_handle, &exp) !=0:
+        raise Exception("Could not retrieve the experiment info!")
+
+    # Convert to dict
+    d = LIMEXPERIMENT_to_dict(&exp)
+
+    if DEBUG:
+        import pprint
+        dump_LIMEXPERIMENT_struct(&exp)
         pprint.pprint(d)
 
     return d

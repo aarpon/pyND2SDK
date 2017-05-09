@@ -16,11 +16,17 @@ cdef extern from "c_helper.h":
     void dump_LIMATTRIBUTES_struct(LIMATTRIBUTES *s)
     void dump_LIMMETADATA_DESC_struct(LIMMETADATA_DESC *s)
     void dump_LIMTEXTINFO_struct(LIMTEXTINFO *s)
+    void dump_LIMPICTUREPLANE_DESC_struct(LIMPICTUREPLANE_DESC *s)
+    void dump_LIMEXPERIMENTLEVEL_struct(LIMEXPERIMENTLEVEL *s)
+    void dump_LIMEXPERIMENT_struct(LIMEXPERIMENT *s)
 
     # Structure to  dictionary functions
     object LIMATTRIBUTES_to_dict(LIMATTRIBUTES *s)
     object LIMMETADATA_DESC_to_dict(LIMMETADATA_DESC *s)
     object LIMTEXTINFO_to_dict(LIMTEXTINFO * s)
+    object LIMPICTUREPLANE_DESC_to_dict(LIMPICTUREPLANE_DESC *s)
+    object LIMEXPERIMENTLEVEL_to_dict(LIMEXPERIMENTLEVEL * s)
+    object LIMEXPERIMENT_to_dict(LIMEXPERIMENT * s)
 
 cdef extern from "nd2ReadSDK.h":
 
@@ -28,6 +34,7 @@ cdef extern from "nd2ReadSDK.h":
     #
     # Defining them as enum allows declarations such as array[number]
     enum: LIMMAXPICTUREPLANES
+    enum: LIMMAXEXPERIMENTLEVEL
 
     # File handle
     ctypedef int LIMFILEHANDLE
@@ -63,6 +70,18 @@ cdef extern from "nd2ReadSDK.h":
     ctypedef struct LIMTEXTINFO:
         pass
 
+    # Struct LIMPICTUREPLANE_DESC
+    ctypedef struct LIMPICTUREPLANE_DESC:
+        pass
+
+    # Struct LIMEXPERIMENTLEVEL
+    ctypedef struct LIMEXPERIMENTLEVEL:
+        pass
+
+    # Struct LIMEXPERIMENT
+    ctypedef struct LIMEXPERIMENT:
+        pass
+
     # Open file for reading (and return file handle)
     LIMRESULT _Lim_FileOpenForRead "Lim_FileOpenForRead"(LIMCWSTR wszFileName)
 
@@ -75,5 +94,8 @@ cdef extern from "nd2ReadSDK.h":
     # Get the metadata
     LIMRESULT _Lim_FileGetMetadata "Lim_FileGetMetadata"(LIMFILEHANDLE hFile, LIMMETADATA_DESC* meta);
 
-    # Get the thext info
+    # Get the the text info
     LIMRESULT _Lim_FileGetTextinfo "Lim_FileGetTextinfo"(LIMFILEHANDLE hFile, LIMTEXTINFO* info);
+
+    # Get the experiment
+    LIMRESULT _Lim_FileGetExperiment "Lim_FileGetExperiment"(LIMFILEHANDLE hFile, LIMEXPERIMENT* exp);

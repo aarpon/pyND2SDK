@@ -45,8 +45,19 @@ void dump_LIMMETADATA_DESC_struct(LIMMETADATA_DESC *s)
 	std::cout << "uiImageType         = " << (LIMUINT)s->uiImageType << std::endl;
 	std::cout << "uiPlaneCount        = " << (LIMUINT)s->uiPlaneCount << std::endl;
 	std::cout << "uiComponentCount    = " << (LIMUINT)s->uiComponentCount << std::endl;
-	// @todo Still missing: LIMPICTUREPLANE_DESC pPlanes[LIMMAXPICTUREPLANES];
-
+	// Print just the metadata for the first two planes
+	for (int i = 0; i < 2; i++)
+	{
+		LIMPICTUREPLANE_DESC p = (LIMPICTUREPLANE_DESC)s->pPlanes[i];
+		std::cout << "Plane " << i << ":" << std::endl;
+		std::cout << "    uiCompCount    = " << (long)p.uiCompCount << std::endl;
+		std::cout << "    uiColorRGB     = " << (long)p.uiColorRGB << std::endl;
+		std::cout << "    dEmissionWL    = " << (double)p.dEmissionWL << std::endl;
+		std::wstring wszName = p.wszName;
+		std::wstring wszOCName = p.wszOCName;
+		std::cout << "    wszName        = "; std::wcout << wszName.c_str(); std::cout << std::endl;
+		std::cout << "    wszOCName      = "; std::wcout << wszOCName.c_str(); std::cout << std::endl;
+	}
 	std::cout << "wszObjectiveName    = ";std::wcout << objName.c_str();std::cout << std::endl;
 }
 
