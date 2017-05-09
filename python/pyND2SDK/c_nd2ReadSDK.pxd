@@ -15,10 +15,12 @@ cdef extern from "c_helper.h":
     # DEBUG functions
     void dump_LIMATTRIBUTES_struct(LIMATTRIBUTES *s)
     void dump_LIMMETADATA_DESC_struct(LIMMETADATA_DESC *s)
+    void dump_LIMTEXTINFO_struct(LIMTEXTINFO *s)
 
     # Structure to  dictionary functions
     object LIMATTRIBUTES_to_dict(LIMATTRIBUTES *s)
     object LIMMETADATA_DESC_to_dict(LIMMETADATA_DESC *s)
+    object LIMTEXTINFO_to_dict(LIMTEXTINFO * s)
 
 cdef extern from "nd2ReadSDK.h":
 
@@ -57,6 +59,10 @@ cdef extern from "nd2ReadSDK.h":
     ctypedef struct LIMMETADATA_DESC:
         pass
 
+    # Struct LIMTEXTINFO
+    ctypedef struct LIMTEXTINFO:
+        pass
+
     # Open file for reading (and return file handle)
     LIMRESULT _Lim_FileOpenForRead "Lim_FileOpenForRead"(LIMCWSTR wszFileName)
 
@@ -68,3 +74,6 @@ cdef extern from "nd2ReadSDK.h":
 
     # Get the metadata
     LIMRESULT _Lim_FileGetMetadata "Lim_FileGetMetadata"(LIMFILEHANDLE hFile, LIMMETADATA_DESC* meta);
+
+    # Get the thext info
+    LIMRESULT _Lim_FileGetTextinfo "Lim_FileGetTextinfo"(LIMFILEHANDLE hFile, LIMTEXTINFO* info);

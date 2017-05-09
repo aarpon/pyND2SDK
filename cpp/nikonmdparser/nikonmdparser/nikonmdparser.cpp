@@ -69,6 +69,17 @@ public:
 		std::cout << std::endl << "LIMMETADATA_DESC:" << std::endl;
 		dump_LIMMETADATA_DESC_struct(&m_Metadata);
 
+		// Read the text info (result is 0 on success)
+		if (Lim_FileGetTextinfo(m_FileHandle, &m_TextInfo) != 0)
+		{
+			std::cerr << "Could not read file text info!" << std::endl;
+			return false;
+		}
+
+		// Print metadata
+		std::cout << std::endl << "LIMTEXTINFO:" << std::endl;
+		dump_LIMTEXTINFO_struct(&m_TextInfo);
+
 		return true;
 	}
 

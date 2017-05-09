@@ -78,3 +78,25 @@ def Lim_FileGetMetadata(int file_handle):
         pprint.pprint(d)
 
     return d
+
+def Lim_FileGetTextinfo(int file_handle):
+    """
+    Retrieves the text info or throws an Exception if it failed.
+    :param file_handle: handle of the open file.
+    :type file_handle: int
+    :return: LIMMETADATA_DESC structure mapped to a python dictionary
+    :rtype: dict
+    """
+    cdef LIMTEXTINFO info;
+    if _Lim_FileGetTextinfo(file_handle, &info) !=0:
+        raise Exception("Could not retrieve the text info!")
+
+    # Convert to dict
+    d = LIMTEXTINFO_to_dict(&info)
+
+    if DEBUG:
+        import pprint
+        dump_LIMTEXTINFO_struct(&info)
+        pprint.pprint(d)
+
+    return d
