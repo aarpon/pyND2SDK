@@ -30,4 +30,12 @@ PyObject* LIMPICTUREPLANE_DESC_to_dict(LIMPICTUREPLANE_DESC * s);
 PyObject* LIMEXPERIMENTLEVEL_to_dict(LIMEXPERIMENTLEVEL * s);
 PyObject* LIMEXPERIMENT_to_dict(LIMEXPERIMENT * s);
 
+/* -----------------------------------------------------------------------------
+
+    Data access functions
+
+----------------------------------------------------------------------------- */
+
+float *make_matrix_c(int n_rows, int n_cols);
+
 #endif

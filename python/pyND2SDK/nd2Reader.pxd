@@ -10,12 +10,7 @@ cdef extern from "Python.h":
 cdef extern from "wchar.h":
     int wprintf(const wchar_t *, ...)
 
-cdef extern from "data_access_helper.h":
-    # This is currently a placeholder function to test the
-    # conversion of C arrays into numpy.ndarrays.
-    float *make_matrix_c(int nrows, int ncols)
-
-cdef extern from "c_helper.h":
+cdef extern from "nd2Reader_helper.h":
 
     # DEBUG functions
     void dump_LIMATTRIBUTES_struct(LIMATTRIBUTES *s)
@@ -104,3 +99,7 @@ cdef extern from "nd2ReadSDK.h":
 
     # Get the experiment
     LIMRESULT _Lim_FileGetExperiment "Lim_FileGetExperiment"(LIMFILEHANDLE hFile, LIMEXPERIMENT* exp);
+
+    # This is currently a placeholder function to test the
+    # conversion of C arrays into numpy.ndarrays.
+    float *make_matrix_c(int nrows, int ncols)
