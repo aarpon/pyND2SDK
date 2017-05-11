@@ -1,5 +1,5 @@
 import unittest
-from pyND2SDK import c_nd2ReadSDK
+from pyND2SDK import nd2Reader
 import numpy as np
 
 class TestFileOne(unittest.TestCase):
@@ -8,13 +8,13 @@ class TestFileOne(unittest.TestCase):
 
         # Open the test file
         self.filename = "F:/Data/openBIS_test_data/microscopy/Performance_Issue/beads001.nd2"
-        self.file_handle = c_nd2ReadSDK.LIM_FileOpenForRead(self.filename)
+        self.file_handle = nd2Reader.LIM_FileOpenForRead(self.filename)
         self.assertNotEqual(self.file_handle, 0, "Failed opening file!")
 
     def test_readAttributes(self):
 
         # Retrieve the attributes
-        self.attr = c_nd2ReadSDK.Lim_FileGetAttributes(self.file_handle)
+        self.attr = nd2Reader.Lim_FileGetAttributes(self.file_handle)
 
         # Test them
         self.assertEqual(self.attr['uiWidth'], 512)
@@ -31,7 +31,7 @@ class TestFileOne(unittest.TestCase):
 
     def test_readMetadata(self):
         # Retrieve the metadata
-        self.meta = c_nd2ReadSDK.Lim_FileGetMetadata(self.file_handle)
+        self.meta = nd2Reader.Lim_FileGetMetadata(self.file_handle)
 
         # Test it
         self.assertAlmostEqual(self.meta['dTimeStart'], 2457043.0893508564)
@@ -51,7 +51,7 @@ class TestFileOne(unittest.TestCase):
 
     def test_readTestInfo(self):
         # Retrieve the text info
-        self.info = c_nd2ReadSDK.Lim_FileGetTextinfo(self.file_handle)
+        self.info = nd2Reader.Lim_FileGetTextinfo(self.file_handle)
 
         # Test it
         self.assertEqual(self.info['wszImageID'], "")
@@ -133,13 +133,13 @@ class TestFileOne(unittest.TestCase):
         self.assertEqual(self.info['wszAppVersion'], "4.30.01 (Build 1021)")
 
     def test_finalizer(self):
-        arr = c_nd2ReadSDK.make_matrix(100, 100)
-        self.assertTrue(type(arr.base) is c_nd2ReadSDK._finalizer)
+        arr = nd2Reader.make_matrix(100, 100)
+        self.assertTrue(type(arr.base) is nd2Reader._finalizer)
         self.assertTrue(type(arr) is np.ndarray)
         arr = None
 
     def tearDown(self):
-        result = c_nd2ReadSDK.LIM_FileClose(self.file_handle)
+        result = nd2Reader.LIM_FileClose(self.file_handle)
         self.assertEqual(result, 0, "Failed opening file!")
 
 if __name__ == '__main__':
