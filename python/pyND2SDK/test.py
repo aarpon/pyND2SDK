@@ -1,6 +1,6 @@
 import unittest
 from pyND2SDK import c_nd2ReadSDK
-
+import numpy as np
 
 class TestFileOne(unittest.TestCase):
 
@@ -131,6 +131,12 @@ class TestFileOne(unittest.TestCase):
         self.assertEqual(self.info['wszInfo2'], "")
         self.assertEqual(self.info['wszOptics'], "Plan Fluor 10x Ph1 DLL")
         self.assertEqual(self.info['wszAppVersion'], "4.30.01 (Build 1021)")
+
+    def test_finalizer(self):
+        arr = c_nd2ReadSDK.make_matrix(100, 100)
+        self.assertTrue(type(arr.base) is c_nd2ReadSDK._finalizer)
+        self.assertTrue(type(arr) is np.ndarray)
+        arr = None
 
     def tearDown(self):
         result = c_nd2ReadSDK.LIM_FileClose(self.file_handle)

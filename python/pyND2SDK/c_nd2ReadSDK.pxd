@@ -10,6 +10,11 @@ cdef extern from "Python.h":
 cdef extern from "wchar.h":
     int wprintf(const wchar_t *, ...)
 
+cdef extern from "data_access_helper.h":
+    # This is currently a placeholder function to test the
+    # conversion of C arrays into numpy.ndarrays.
+    float *make_matrix_c(int nrows, int ncols)
+
 cdef extern from "c_helper.h":
 
     # DEBUG functions

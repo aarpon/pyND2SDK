@@ -95,7 +95,7 @@ void dump_LIMEXPERIMENT_struct(LIMEXPERIMENT *s)
 
 /* -----------------------------------------------------------------------------
 
-    Map LIM structures to python dictionaries
+    Conversion functions: map LIM structures to python dictionaries
 
 ----------------------------------------------------------------------------- */
 

@@ -1,7 +1,10 @@
 # ND2Reader
 #
 # Uses the Nikon SDK for accessing data and metadata from ND2 files.
+import numpy as np
+cimport numpy as cnp
 
+from libc.stdlib cimport free
 from libc.stddef cimport wchar_t
 
 DEBUG = True
@@ -122,3 +125,35 @@ def Lim_FileGetExperiment(int file_handle):
         pprint.pprint(d)
 
     return d
+
+# Data access
+
+# Create a dynamically allocated C array
+def make_matrix(int nrows, int ncols):
+    cdef float[:, ::1] mv = <float[:nrows, :ncols]>make_matrix_c(nrows, ncols)
+    return np.asarray(mv)
+
+# Clean (own) memory when finalizing the array
+cdef class _finalizer:
+    cdef void *_data
+
+    def __dealloc__(self):
+        print("_finalizer.__dealloc__")
+        if self._data is not NULL:
+            free(self._data)
+
+# Convenience function to create a _finalizer
+cdef void set_base(cnp.ndarray arr, void *carr):
+    cdef _finalizer f = _finalizer()
+    f._data = <void*>carr
+    cnp.set_array_base(arr, f)
+
+# Convenience function to create a C-contiguous typed memoryview
+# from the mat array
+def make_matrix(int nrows, int ncols):
+    cdef float *mat = make_matrix_c(nrows, ncols)
+    cdef float[:, ::1] mv = <float[:nrows, :ncols]>mat
+    cdef cnp.ndarray arr = np.asarray(mv)
+    set_base(arr, mat)
+    return arr
+
