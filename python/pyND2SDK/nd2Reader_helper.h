@@ -16,6 +16,8 @@ void dump_LIMTEXTINFO_struct(LIMTEXTINFO *s);
 void dump_LIMPICTUREPLANE_DESC_struct(LIMPICTUREPLANE_DESC *s);
 void dump_LIMEXPERIMENTLEVEL_struct(LIMEXPERIMENTLEVEL *s);
 void dump_LIMEXPERIMENT_struct(LIMEXPERIMENT *s);
+void dump_LIMPICTURE_struct(LIMPICTURE *p);
+
 
 /* -----------------------------------------------------------------------------
 
@@ -36,6 +38,8 @@ PyObject* LIMEXPERIMENT_to_dict(LIMEXPERIMENT * s);
 
 ----------------------------------------------------------------------------- */
 
-float *make_matrix_c(int n_rows, int n_cols);
+float *get_float_pointer_to_picture_data(LIMPICTURE * p);
+unsigned short * get_uint16_pointer_to_picture_data(LIMPICTURE * p);
+unsigned char * get_uint8_pointer_to_picture_data(LIMPICTURE * p);
 
 #endif

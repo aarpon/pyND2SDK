@@ -19,8 +19,12 @@ if __name__ == "__main__":
         # Retrieve the text info
         info = nd2Reader.Lim_FileGetTextinfo(file_handle)
 
-        # Retrieve the experimnt info
+        # Retrieve the experiment info
         exp = nd2Reader.Lim_FileGetExperiment(file_handle)
+
+        # Create a picture
+        picture = nd2Reader.Lim_InitPicture(16, 16, 32, 1)
+        print(picture.np_arr)
 
         # Close the file
         result = nd2Reader.LIM_FileClose(file_handle)

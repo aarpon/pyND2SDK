@@ -19,6 +19,7 @@ cdef extern from "nd2Reader_helper.h":
     void dump_LIMPICTUREPLANE_DESC_struct(LIMPICTUREPLANE_DESC *s)
     void dump_LIMEXPERIMENTLEVEL_struct(LIMEXPERIMENTLEVEL *s)
     void dump_LIMEXPERIMENT_struct(LIMEXPERIMENT *s)
+    void dump_LIMPICTURE_struct(LIMPICTURE *s)
 
     # Structure to  dictionary functions
     object LIMATTRIBUTES_to_dict(LIMATTRIBUTES *s)
@@ -27,6 +28,11 @@ cdef extern from "nd2Reader_helper.h":
     object LIMPICTUREPLANE_DESC_to_dict(LIMPICTUREPLANE_DESC *s)
     object LIMEXPERIMENTLEVEL_to_dict(LIMEXPERIMENTLEVEL * s)
     object LIMEXPERIMENT_to_dict(LIMEXPERIMENT * s)
+
+    # Data functions
+    float * get_float_pointer_to_picture_data(LIMPICTURE * p)
+    unsigned short * get_uint16_pointer_to_picture_data(LIMPICTURE * p)
+    char * get_uint8_pointer_to_picture_data(LIMPICTURE * p)
 
 cdef extern from "nd2ReadSDK.h":
 
@@ -53,6 +59,9 @@ cdef extern from "nd2ReadSDK.h":
 
     # Constant pointer to wide char string (python unicode will be cast to it)
     ctypedef const wchar_t* LIMCWSTR "const wchar_t *"
+
+    # Size (unsigned)
+    ctypedef size_t LIMSIZE "size_t"
 
     # Picture plane description
     ctypedef struct LIMPICTUREPLANE_DESC:
@@ -82,6 +91,12 @@ cdef extern from "nd2ReadSDK.h":
     ctypedef struct LIMEXPERIMENT:
         pass
 
+    ctypedef struct LIMPICTURE:
+        pass
+
+    ctypedef struct LIMLOCALMETADATA:
+        pass
+
     # Open file for reading (and return file handle)
     LIMRESULT _Lim_FileOpenForRead "Lim_FileOpenForRead"(LIMCWSTR wszFileName)
 
@@ -92,14 +107,19 @@ cdef extern from "nd2ReadSDK.h":
     LIMRESULT _Lim_FileGetAttributes "Lim_FileGetAttributes"(LIMFILEHANDLE hFile, LIMATTRIBUTES* attr)
 
     # Get the metadata
-    LIMRESULT _Lim_FileGetMetadata "Lim_FileGetMetadata"(LIMFILEHANDLE hFile, LIMMETADATA_DESC* meta);
+    LIMRESULT _Lim_FileGetMetadata "Lim_FileGetMetadata"(LIMFILEHANDLE hFile, LIMMETADATA_DESC* meta)
 
     # Get the the text info
-    LIMRESULT _Lim_FileGetTextinfo "Lim_FileGetTextinfo"(LIMFILEHANDLE hFile, LIMTEXTINFO* info);
+    LIMRESULT _Lim_FileGetTextinfo "Lim_FileGetTextinfo"(LIMFILEHANDLE hFile, LIMTEXTINFO* info)
 
     # Get the experiment
-    LIMRESULT _Lim_FileGetExperiment "Lim_FileGetExperiment"(LIMFILEHANDLE hFile, LIMEXPERIMENT* exp);
+    LIMRESULT _Lim_FileGetExperiment "Lim_FileGetExperiment"(LIMFILEHANDLE hFile, LIMEXPERIMENT* exp)
 
-    # This is currently a placeholder function to test the
-    # conversion of C arrays into numpy.ndarrays.
-    float *make_matrix_c(int nrows, int ncols)
+    # Initialize a picture
+    LIMSIZE _Lim_InitPicture "Lim_InitPicture"(LIMPICTURE* pPicture, LIMUINT width, LIMUINT height, LIMUINT bpc, LIMUINT components)
+
+    # Get image data
+    LIMRESULT _Lim_FileGetImageData "Lim_FileGetImageData"(LIMFILEHANDLE hFile, LIMUINT uiSeqIndex, LIMPICTURE* pPicture, LIMLOCALMETADATA* pImgInfo)
+
+    # Destroy a picture
+    void _Lim_DestroyPicture "Lim_DestroyPicture"(LIMPICTURE* pPicture)

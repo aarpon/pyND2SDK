@@ -93,6 +93,17 @@ void dump_LIMEXPERIMENT_struct(LIMEXPERIMENT *s)
     }
 }
 
+void dump_LIMPICTURE_struct(LIMPICTURE *s)
+{
+    printf("uiWidth             = %d\n", (long)s->uiWidth);;
+    printf("uiHeight            = %d\n", (long)s->uiHeight);
+    printf("uiBitsPerComp       = %d\n", (long)s->uiBitsPerComp);
+    printf("uiComponents        = %d\n", (long)s->uiComponents);
+    printf("uiWidthBytes        = %d\n", (long)s->uiWidthBytes);
+    printf("uiSize              = %d\n", (long)s->uiSize);
+    printf("&pImageData         = %p\n", (void *)s->pImageData);
+}
+
 /* -----------------------------------------------------------------------------
 
     Conversion functions: map LIM structures to python dictionaries
@@ -300,18 +311,19 @@ PyObject* LIMEXPERIMENT_to_dict(LIMEXPERIMENT * s)
 
 ----------------------------------------------------------------------------- */
 
-float *make_matrix_c(int n_rows, int n_cols)
+float *get_float_pointer_to_picture_data(LIMPICTURE * p)
 {
-    float *arr = (float *)malloc(n_rows * n_cols * sizeof(float));
+    return (float *)p->pImageData;
+}
 
-    int i, j, count = 0;
-    for (i = 0; i <  n_rows; i++)
-    {
-        for (j = 0; j < n_cols; j++)
-        {
-            *(arr + i * n_cols + j) = ++count;
-        }
-    }
 
-    return arr;
+unsigned short *get_uint16_pointer_to_picture_data(LIMPICTURE * p)
+{
+    return (unsigned short *)p->pImageData;
+}
+
+
+unsigned char *get_uint8_pointer_to_picture_data(LIMPICTURE * p)
+{
+    return (unsigned char *)p->pImageData;
 }
