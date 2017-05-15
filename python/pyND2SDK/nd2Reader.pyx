@@ -11,17 +11,17 @@ from libc.stddef cimport wchar_t
 DEBUG = False
 
 # (Hybrid) picture class
-cdef class pLIMPICTURE:
+cdef class Picture:
     cdef LIMPICTURE picture
     cdef np.ndarray np_arr
 
-    def __init__(self, width, height, bpc, components):
+    def __init__(self, width, height, bpc, components, hFile, seqIndex):
         cdef LIMPICTURE temp
         if _Lim_InitPicture(&temp, width, height, bpc, components) == 0:
             raise Exception("Could not initialize picture!")
 
-        if DEBUG:
-            dump_LIMPICTURE_struct(&temp)
+        # Load the image
+        load_image_data(hFile, &temp, seqIndex)
 
         # Create a memory view to the data
         if bpc == 8:
@@ -35,6 +35,9 @@ cdef class pLIMPICTURE:
 
         self.picture = temp
 
+    cdef dump(self):
+        dump_LIMPICTURE_struct(&self.picture)
+
     def __dealloc__(self):
         # When the pLIMPICTURE object is destroyed,
         # we make sure to destroy also the LIM picture
@@ -45,140 +48,169 @@ cdef class pLIMPICTURE:
     def np_arr(self):
         return self.np_arr
 
-def LIM_FileOpenForRead(unicode filename):
-    """
-    Opens the file 'filename' for reading and returns the file handle.
-    :param filename: with file full path
-    :type filename: unicode string
-    :return: file handle
-    :rtype: int
-    """
 
-    # Make sure the string is unicode
-    filename = unicode(filename)
-    cdef Py_ssize_t length
-    cdef wchar_t *w_filename = PyUnicode_AsWideCharString(filename, &length)
+class nd2Reader:
 
-    # Open the file and return the handle
-    return _Lim_FileOpenForRead(w_filename)
+    def __init__(self):
+        self.attr = None
+        self.meta = None
+        self.file_name = ""
+        self.file_handle = 0
+        self.Pictures = {}
 
-def LIM_FileClose(int file_handle):
-    """
-    Closes the file with given handle.
-    :param file_handle: file handle returned by LIM_FileOpenForRead()
-    :type file_handle: int
-    :return: result of closing the file
-    :rtype: int
-    """
+    def open(self, filename):
+        """
+        Opens the file 'filename' for reading and returns the file handle.
+        :param filename: with file full path
+        :type filename: unicode string
+        :return: file handle
+        :rtype: int
+        """
 
-    # Close the file
-    return _Lim_FileClose(file_handle)
+        # Make sure the string is unicode
+        self.file_name = unicode(filename)
+        cdef Py_ssize_t length
+        cdef wchar_t *w_filename = PyUnicode_AsWideCharString(self.file_name, &length)
 
-def Lim_FileGetAttributes(int file_handle):
-    """
-    Retrieves the file attributes or throws an Exception if it failed.
-    :param file_handle: handle of the open file.
-    :type file_handle: int
-    :return: LIMATTRIBUTES structure mapped to a python dictionary
-    :rtype: dict
-    """
-    cdef LIMATTRIBUTES attr;
-    if _Lim_FileGetAttributes(file_handle, &attr) !=0:
-        raise Exception("Could not retrieve the file attributes!")
+        # Open the file and return the handle
+        self.file_handle = _Lim_FileOpenForRead(w_filename)
+        return self.file_handle
 
-    # Convert to dict
-    d = LIMATTRIBUTES_to_dict(&attr)
+    def is_open(self):
+        return self.file_handle != 0
 
-    if DEBUG:
-        import pprint
-        dump_LIMATTRIBUTES_struct(&attr)
-        pprint.pprint(d)
+    def close(self):
+        """
+        Closes the file with given handle.
+        :param file_handle: file handle returned by LIM_FileOpenForRead()
+        :type file_handle: int
+        :return: result of closing the file
+        :rtype: int
+        """
 
-    return d
+        # Close the file
+        self.file_handle = _Lim_FileClose(self.file_handle)
+        return self.file_handle
 
-def Lim_FileGetMetadata(int file_handle):
-    """
-    Retrieves the file metadata or throws an Exception if it failed.
-    :param file_handle: handle of the open file.
-    :type file_handle: int
-    :return: LIMMETADATA_DESC structure mapped to a python dictionary
-    :rtype: dict
-    """
-    cdef LIMMETADATA_DESC meta;
-    if _Lim_FileGetMetadata(file_handle, &meta) !=0:
-        raise Exception("Could not retrieve the file metadata!")
+    def get_attributes(self):
+        """
+        Retrieves the file attributes or throws an Exception if it failed.
+        :param file_handle: handle of the open file.
+        :type file_handle: int
+        :return: LIMATTRIBUTES structure mapped to a python dictionary
+        :rtype: dict
+        """
+        cdef LIMATTRIBUTES attr;
+        if _Lim_FileGetAttributes(self.file_handle, &attr) !=0:
+            raise Exception("Could not retrieve the file attributes!")
 
-    # Convert to dict
-    d = LIMMETADATA_DESC_to_dict(&meta)
+        # Convert to dict
+        d = LIMATTRIBUTES_to_dict(&attr)
 
-    if DEBUG:
-        import pprint
-        dump_LIMMETADATA_DESC_struct(&meta)
-        pprint.pprint(d)
+        if DEBUG:
+            import pprint
+            dump_LIMATTRIBUTES_struct(&attr)
+            pprint.pprint(d)
 
-    return d
+        return d
 
-def Lim_FileGetTextinfo(int file_handle):
-    """
-    Retrieves the text info or throws an Exception if it failed.
-    :param file_handle: handle of the open file.
-    :type file_handle: int
-    :return: LIMTEXTINFO structure mapped to a python dictionary
-    :rtype: dict
-    """
-    cdef LIMTEXTINFO info;
-    if _Lim_FileGetTextinfo(file_handle, &info) !=0:
-        raise Exception("Could not retrieve the text info!")
+    def get_metadata(self):
+        """
+        Retrieves the file metadata or throws an Exception if it failed.
+        :param file_handle: handle of the open file.
+        :type file_handle: int
+        :return: LIMMETADATA_DESC structure mapped to a python dictionary
+        :rtype: dict
+        """
+        cdef LIMMETADATA_DESC meta;
+        if _Lim_FileGetMetadata(self.file_handle, &meta) !=0:
+            raise Exception("Could not retrieve the file metadata!")
 
-    # Convert to dict
-    d = LIMTEXTINFO_to_dict(&info)
+        # Convert to dict
+        d = LIMMETADATA_DESC_to_dict(&meta)
 
-    if DEBUG:
-        import pprint
-        dump_LIMTEXTINFO_struct(&info)
-        pprint.pprint(d)
+        if DEBUG:
+            import pprint
+            dump_LIMMETADATA_DESC_struct(&meta)
+            pprint.pprint(d)
 
-    return d
+        return d
 
-def Lim_FileGetExperiment(int file_handle):
-    """
-    Retrieves the experiment info or throws an Exception if it failed.
-    :param file_handle: handle of the open file.
-    :type file_handle: int
-    :return: LIMMETADATA_DESC structure mapped to a python dictionary
-    :rtype: dict
-    """
-    cdef LIMEXPERIMENT exp;
-    if _Lim_FileGetExperiment(file_handle, &exp) !=0:
-        raise Exception("Could not retrieve the experiment info!")
+    def get_text_info(self):
+        """
+        Retrieves the text info or throws an Exception if it failed.
+        :param file_handle: handle of the open file.
+        :type file_handle: int
+        :return: LIMTEXTINFO structure mapped to a python dictionary
+        :rtype: dict
+        """
+        cdef LIMTEXTINFO info;
+        if _Lim_FileGetTextinfo(self.file_handle, &info) !=0:
+            raise Exception("Could not retrieve the text info!")
 
-    # Convert to dict
-    d = LIMEXPERIMENT_to_dict(&exp)
+        # Convert to dict
+        d = LIMTEXTINFO_to_dict(&info)
 
-    if DEBUG:
-        import pprint
-        dump_LIMEXPERIMENT_struct(&exp)
-        pprint.pprint(d)
+        if DEBUG:
+            import pprint
+            dump_LIMTEXTINFO_struct(&info)
+            pprint.pprint(d)
 
-    return d
+        return d
 
-# Data access
-def Lim_InitPicture(LIMUINT width, LIMUINT height, LIMUINT bpc, LIMUINT components):
-    """
-    Initializes a picture.
-    :param width: width of the picture
-    :type width: unsigned int
-    :param height: height of the picture
-    :type height: unsigned int
-    :param bpc: bits per component: 8, 10, 12, 14, 16, 32
-    :type bpc: unsigned int
-    :param components: number of components
-    :type components: unsigned int
-    :return: picture
-    :rtype: numpy array
-    """
-    p = pLIMPICTURE(width, height, bpc, components)
-    return p
+    def get_experiment(self):
+        """
+        Retrieves the experiment info or throws an Exception if it failed.
+        :param file_handle: handle of the open file.
+        :type file_handle: int
+        :return: LIMMETADATA_DESC structure mapped to a python dictionary
+        :rtype: dict
+        """
+        cdef LIMEXPERIMENT exp;
+        if _Lim_FileGetExperiment(self.file_handle, &exp) !=0:
+            raise Exception("Could not retrieve the experiment info!")
+
+        # Convert to dict
+        d = LIMEXPERIMENT_to_dict(&exp)
+
+        if DEBUG:
+            import pprint
+            dump_LIMEXPERIMENT_struct(&exp)
+            pprint.pprint(d)
+
+        return d
+
+    # Data access
+    def load(self, LIMUINT index):
+        """Loads and stores a picture.
+
+        :param index: index of the sequence (image) to load
+        :type height: unsigned int
+        :return: image a numpy array
+        :rtype: numpy array
+        """
+
+        if self.file_handle is None:
+            return False
+
+        # Get the attributes
+        attr = self.get_attributes()
+ 
+        # Create a new Picture object
+        width = attr['uiWidth']
+        height = attr['uiHeight']
+        bpc = attr['uiBpcSignificant']
+        components = 1
+
+        # Create a new Picture objects that loads the requested image
+        p = Picture(width, height, bpc, components, self.file_handle, index)
+
+        # Store the picture
+        self.Pictures[uiSeqIndex] = p
+
+        # Return the array
+        return p.np_arr
+
 
 # Clean (own) memory when finalizing the array
 cdef class _finalizer:
@@ -223,6 +255,6 @@ cdef to_uint16_numpy_array(LIMPICTURE * pPicture, int nrows, int ncols):
 cdef to_uint8_numpy_array(LIMPICTURE * pPicture, int nrows, int ncols):
     cdef char *mat = get_uint8_pointer_to_picture_data(pPicture)
     cdef char[:, ::1] mv = <char[:nrows, :ncols]>mat
-    cdef np.ndarray arr = np.asarray(mv)
+    cdef np.ndarray arr = np.asarray(mv).view(np.uint8)
     set_base(arr, mat)
     return arr

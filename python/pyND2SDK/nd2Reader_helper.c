@@ -327,3 +327,19 @@ unsigned char *get_uint8_pointer_to_picture_data(LIMPICTURE * p)
 {
     return (unsigned char *)p->pImageData;
 }
+
+void load_image_data(int hFile, LIMPICTURE *picture, unsigned int uiSeqIndex)
+{
+    LIMLOCALMETADATA meta;
+    LIMATTRIBUTES attr;
+
+    // Read the attributes
+    Lim_FileGetAttributes(hFile, &attr);
+
+    // Initialize the picture
+    Lim_InitPicture(picture, attr.uiWidth, attr.uiHeight, attr.uiBpcSignificant, attr.uiComp);
+
+    // Load tge picture into the prepared buffer
+    Lim_FileGetImageData(hFile, uiSeqIndex, picture, &meta);
+
+}

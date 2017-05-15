@@ -4,29 +4,33 @@ if __name__ == "__main__":
 
     filename = "F:/Data/openBIS_test_data/microscopy/Performance_Issue/beads001.nd2"
 
-    file_handle = nd2Reader.LIM_FileOpenForRead(filename)
-    if file_handle == 0:
+    r = nd2Reader.nd2Reader()
+
+    r.open(filename)
+
+    if not r.is_open():
         print('Could not open ND2 file!')
-    else:
-        print('ND2 file opened successfully!')
+        exit(1)
 
-        # Retrieve the attributes
-        attr = nd2Reader.Lim_FileGetAttributes(file_handle)
+    # Retrieve the attributes
+    attr = r.get_attributes()
 
-        # Retrieve the metadata
-        meta = nd2Reader.Lim_FileGetMetadata(file_handle)
+    # Retrieve the metadata
+    meta = r.get_metadata()
 
-        # Retrieve the text info
-        info = nd2Reader.Lim_FileGetTextinfo(file_handle)
+    # Retrieve the text info
+    info = r.get_text_info()
 
-        # Retrieve the experiment info
-        exp = nd2Reader.Lim_FileGetExperiment(file_handle)
+    # Retrieve the experiment info
+    exp = r.get_experiment()
 
-        # Create a picture
-        picture = nd2Reader.Lim_InitPicture(16, 16, 32, 1)
-        print(picture.np_arr)
+    # Create an empty picture with the correct size
+    data = r.load(0)
+    print(data.shape)
+    print(data.dtype)
 
-        # Close the file
-        result = nd2Reader.LIM_FileClose(file_handle)
-        print(result)
-
+    # Close the file
+    r.close()
+    if r.is_open():
+        print('Could not close ND2 file!')
+        exit(1)
