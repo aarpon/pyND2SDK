@@ -317,15 +317,15 @@ float *get_float_pointer_to_picture_data(LIMPICTURE * p)
 }
 
 
-unsigned short *get_uint16_pointer_to_picture_data(LIMPICTURE * p)
+uint16_t *get_uint16_pointer_to_picture_data(LIMPICTURE * p)
 {
-    return (unsigned short *)p->pImageData;
+    return (uint16_t *)p->pImageData;
 }
 
 
-unsigned char *get_uint8_pointer_to_picture_data(LIMPICTURE * p)
+uint8_t *get_uint8_pointer_to_picture_data(LIMPICTURE * p)
 {
-    return (unsigned char *)p->pImageData;
+    return (uint8_t *)p->pImageData;
 }
 
 void load_image_data(int hFile, LIMPICTURE *picture, unsigned int uiSeqIndex)

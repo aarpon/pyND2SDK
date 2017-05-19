@@ -1,5 +1,7 @@
 #include "Python.h"
 #include "nd2ReadSDK.h"
+#include <inttypes.h>
+#include <stdint.h>
 
 #ifndef __C_HELPER_H__
 #define __C_HELPER_H__
@@ -39,8 +41,8 @@ PyObject* LIMEXPERIMENT_to_dict(LIMEXPERIMENT * s);
 ----------------------------------------------------------------------------- */
 
 float *get_float_pointer_to_picture_data(LIMPICTURE * p);
-unsigned short * get_uint16_pointer_to_picture_data(LIMPICTURE * p);
-unsigned char * get_uint8_pointer_to_picture_data(LIMPICTURE * p);
+uint16_t * get_uint16_pointer_to_picture_data(LIMPICTURE * p);
+uint8_t * get_uint8_pointer_to_picture_data(LIMPICTURE * p);
 void load_image_data(int hFile, LIMPICTURE *p, unsigned int uiSeqIndex);
 
 #endif

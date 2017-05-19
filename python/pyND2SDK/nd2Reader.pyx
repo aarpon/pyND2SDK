@@ -13,40 +13,70 @@ DEBUG = False
 # (Hybrid) picture class
 cdef class Picture:
     cdef LIMPICTURE picture
-    cdef np.ndarray np_arr
+    cdef int width
+    cdef int height
+    cdef int bpc
+    cdef int n_components
 
-    def __init__(self, width, height, bpc, components, hFile, seqIndex):
+    def __init__(self, width, height, bpc, n_components, hFile, seqIndex):
+
+        # Store some arguments for easier access
+        self.width = width
+        self.height = height
+        self.bpc = bpc
+        self.n_components = n_components
+
+        # Load the data into the LIMPicture structure
         cdef LIMPICTURE temp
-        if _Lim_InitPicture(&temp, width, height, bpc, components) == 0:
+        if _Lim_InitPicture(&temp, width, height, bpc, n_components) == 0:
             raise Exception("Could not initialize picture!")
 
-        # Load the image
+        # Load the image and store it
         load_image_data(hFile, &temp, seqIndex)
-
-        # Create a memory view to the data
-        if bpc == 8:
-            self.np_arr = to_uint8_numpy_array(&temp, height, width)
-        elif 8 < bpc <= 16:
-            self.np_arr = to_uint16_numpy_array(&temp, height, width)
-        elif bpc == 32:
-            self.np_arr = to_float_numpy_array(&temp, height, width)
-        else:
-            raise ValueError("Unexpected value for bpc!")
-
         self.picture = temp
 
     cdef dump(self):
         dump_LIMPICTURE_struct(&self.picture)
 
     def __dealloc__(self):
-        # When the pLIMPICTURE object is destroyed,
-        # we make sure to destroy also the LIM picture
-        # it refers to.
+        """
+        Destructor.
+
+        When the Picture object is destroyed, we make sure
+        to destroy also the LIM picture it refers to.
+        """
         _Lim_DestroyPicture(&self.picture)
 
+    def image(self, comp):
+        """
+        Return image at given component number as numpy array (memoryview).
+        :param comp: component number
+        :type comp: int
+        :return: image
+        :rtype: np.array (memoryview)
+        """
+
+        cdef LIMPICTURE pic = self.picture
+        cdef np.ndarray np_arr
+
+        # Create a memory view to the data
+        if self.bpc == 8:
+            np_arr = to_uint8_numpy_array(&pic, self.height, self.width,
+                                          self.n_components, comp)
+        elif 8 < self.bpc <= 16:
+            np_arr = to_uint16_numpy_array(&pic, self.height, self.width,
+                                           self.n_components, comp)
+        elif self.bpc == 32:
+            np_arr = to_float_numpy_array(&pic, self.height, self.width,
+                                          self.n_components, comp)
+        else:
+            raise ValueError("Unexpected value for bpc!")
+
+        return np_arr
+
     @property
-    def np_arr(self):
-        return self.np_arr
+    def n_components(self):
+        return self.n_components
 
 
 class nd2Reader:
@@ -57,6 +87,11 @@ class nd2Reader:
         self.file_name = ""
         self.file_handle = 0
         self.Pictures = {}
+
+    def __del__(self):
+        # Close the file, if open
+        if self.is_open():
+            self.close()
 
     def open(self, filename):
         """
@@ -89,7 +124,8 @@ class nd2Reader:
         """
 
         # Close the file
-        self.file_handle = _Lim_FileClose(self.file_handle)
+        if self.is_open():
+            self.file_handle = _Lim_FileClose(self.file_handle)
         return self.file_handle
 
     def get_attributes(self):
@@ -195,21 +231,34 @@ class nd2Reader:
 
         # Get the attributes
         attr = self.get_attributes()
- 
         # Create a new Picture object
         width = attr['uiWidth']
         height = attr['uiHeight']
         bpc = attr['uiBpcSignificant']
-        components = 1
+        components = attr['uiComp']
 
         # Create a new Picture objects that loads the requested image
         p = Picture(width, height, bpc, components, self.file_handle, index)
 
         # Store the picture
-        self.Pictures[uiSeqIndex] = p
+        self.Pictures[index] = p
 
-        # Return the array
-        return p.np_arr
+        # Return the Picture
+        return p
+
+    def get_picture(self, seqIndex):
+        """
+        Return the Picture as given sequence index. The sequence is loaded
+        if necessary.
+        :param seqIndex: index of the sequence to load
+        :type n: int
+        :return: picture
+        :rtype: Picture
+        """
+        if seqIndex not in self.Pictures:
+            self.load(seqIndex)
+
+        return self.Pictures[seqIndex]
 
 
 # Clean (own) memory when finalizing the array
@@ -229,32 +278,83 @@ cdef void set_base(np.ndarray arr, void *carr):
     f._data = <void*>carr
     np.set_array_base(arr, f)
 
-# Create a numpy array with a memory view on the data (i.e. no copy!)
+# Create a memoryview for the requested component from the picture data
+# stored in the LIMPICTURE structure (no copies are made of the data).
+# The view is returned and can be used an numpy array with type np.uint8.
+#
 # Please notice that if the LIMPICTURE object that owns the data is
 # destroyed, the memoryview will be invalid!!
-cdef to_float_numpy_array(LIMPICTURE * pPicture, int nrows, int ncols):
+cdef to_uint8_numpy_array(LIMPICTURE * pPicture, int n_rows, int n_cols,
+                          int n_components, int component):
+
+    # Get a uint16_t pointer to the picure data
+    cdef uint8_t *mat = get_uint8_pointer_to_picture_data(pPicture)
+
+    # Create a contiguous 1D memory view over the whole array
+    n_elements = n_rows * n_cols * n_components
+    cdef uint8_t[:] mv = <uint8_t[:n_elements]>mat
+
+    # Now skip over the number of components
+    mv = mv[component::n_components]
+
+    # Now reshape the view as a 2D numpy array
+    cdef np.ndarray arr = np.asarray(mv).reshape(n_rows, n_cols).view(np.uint8)
+
+    # Set the base of the array to the picture data location
+    set_base(arr, mat)
+
+    return arr
+
+# Create a memoryview for the requested component from the picture data
+# stored in the LIMPICTURE structure (no copies are made of the data).
+# The view is returned and can be used an numpy array with type np.uint16.
+#
+# Please notice that if the LIMPICTURE object that owns the data is
+# destroyed, the memoryview will be invalid!!
+cdef to_uint16_numpy_array(LIMPICTURE * pPicture, int n_rows, int n_cols,
+                           int n_components, int component):
+
+    # Get a uint16_t pointer to the picure data
+    cdef uint16_t *mat = get_uint16_pointer_to_picture_data(pPicture)
+
+    # Create a contiguous 1D memory view over the whole array
+    n_elements = n_rows * n_cols * n_components
+    cdef uint16_t[:] mv = <uint16_t[:n_elements]>mat
+
+    # Now skip over the number of components
+    mv = mv[component::n_components]
+
+    # Now reshape the view as a 2D numpy array
+    cdef np.ndarray arr = np.asarray(mv).reshape(n_rows, n_cols).view(np.uint16)
+
+    # Set the base of the array to the picture data location
+    set_base(arr, mat)
+
+    return arr
+
+# Create a memoryview for the requested component from the picture data
+# stored in the LIMPICTURE structure (no copies are made of the data).
+# The view is returned and can be used an numpy array with type np.float32.
+#
+# Please notice that if the LIMPICTURE object that owns the data is
+# destroyed, the memoryview will be invalid!!
+cdef to_float_numpy_array(LIMPICTURE * pPicture, int n_rows, int n_cols,
+                          int n_components, int component):
+
+    # Get a uint16_t pointer to the picure data
     cdef float *mat = get_float_pointer_to_picture_data(pPicture)
-    cdef float[:, ::1] mv = <float[:nrows, :ncols]>mat
-    cdef np.ndarray arr = np.asarray(mv)
-    set_base(arr, mat)
-    return arr
 
-# Create a numpy array with a memory view on the data (i.e. no copy!)
-# Please notice that if the LIMPICTURE object that owns the data is
-# destroyed, the memoryview will be invalid!!
-cdef to_uint16_numpy_array(LIMPICTURE * pPicture, int nrows, int ncols):
-    cdef unsigned short *mat = get_uint16_pointer_to_picture_data(pPicture)
-    cdef unsigned short[:, ::1] mv = <unsigned short[:nrows, :ncols]>mat
-    cdef np.ndarray arr = np.asarray(mv)
-    set_base(arr, mat)
-    return arr
+    # Create a contiguous 1D memory view over the whole array
+    n_elements = n_rows * n_cols * n_components
+    cdef float[:] mv = <float[:n_elements]>mat
 
-# Create a numpy array with a memory view on the data (i.e. no copy!)
-# Please notice that if the LIMPICTURE object that owns the data is
-# destroyed, the memoryview will be invalid!!
-cdef to_uint8_numpy_array(LIMPICTURE * pPicture, int nrows, int ncols):
-    cdef char *mat = get_uint8_pointer_to_picture_data(pPicture)
-    cdef char[:, ::1] mv = <char[:nrows, :ncols]>mat
-    cdef np.ndarray arr = np.asarray(mv).view(np.uint8)
+    # Now skip over the number of components
+    mv = mv[component::n_components]
+
+    # Now reshape the view as a 2D numpy array
+    cdef np.ndarray arr = np.asarray(mv).reshape(n_rows, n_cols).view(np.float32)
+
+    # Set the base of the array to the picture data location
     set_base(arr, mat)
+
     return arr

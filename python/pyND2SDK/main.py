@@ -1,4 +1,5 @@
 from pyND2SDK import nd2Reader
+import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
 
@@ -25,9 +26,21 @@ if __name__ == "__main__":
     exp = r.get_experiment()
 
     # Create an empty picture with the correct size
-    data = r.load(0)
-    print(data.shape)
-    print(data.dtype)
+    sequence = r.load(0)
+
+    for i in range(sequence.n_components):
+
+        print("\nImage %d (5x5 extract):\n" % i)
+        img = sequence.image(i)
+
+        print(img[0:5, 0:5])
+
+        plt.imshow(img, cmap='gray')
+        plt.title("Close the figure to continue")
+        plt.show()
+
+    print(img.shape)
+    print(img.dtype)
 
     # Close the file
     r.close()

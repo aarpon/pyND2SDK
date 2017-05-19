@@ -3,6 +3,7 @@
 # Uses the Nikon SDK for accessing data and metadata from ND2 files.
 
 from libc.stddef cimport wchar_t
+from libc.stdint cimport uint16_t, uint8_t
 
 cdef extern from "Python.h":
     wchar_t* PyUnicode_AsWideCharString(object, Py_ssize_t *)
@@ -31,8 +32,8 @@ cdef extern from "nd2Reader_helper.h":
 
     # Data functions
     float * get_float_pointer_to_picture_data(LIMPICTURE * p)
-    unsigned short * get_uint16_pointer_to_picture_data(LIMPICTURE * p)
-    char * get_uint8_pointer_to_picture_data(LIMPICTURE * p)
+    uint16_t * get_uint16_pointer_to_picture_data(LIMPICTURE * p)
+    uint8_t * get_uint8_pointer_to_picture_data(LIMPICTURE * p)
     void load_image_data(int hFile, LIMPICTURE *p, unsigned int uiSeqIndex)
 
 cdef extern from "nd2ReadSDK.h":
