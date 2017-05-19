@@ -7,7 +7,7 @@
 
 ----------------------------------------------------------------------------- */
 
-void dump_LIMATTRIBUTES_struct(LIMATTRIBUTES *s)
+void dump_LIMATTRIBUTES_struct(const LIMATTRIBUTES *s)
 {
     printf("uiWidth             = %d\n", (long)s->uiWidth);
     printf("uiWidthBytes        = %d\n", (long)s->uiWidthBytes);
@@ -22,7 +22,7 @@ void dump_LIMATTRIBUTES_struct(LIMATTRIBUTES *s)
     printf("uiQuality           = %d\n", (long)s->uiQuality);
 }
 
-void dump_LIMMETADATA_DESC_struct(LIMMETADATA_DESC *s)
+void dump_LIMMETADATA_DESC_struct(const LIMMETADATA_DESC *s)
 {
 	printf("dTimeStart          = %f\n", (double)s->dTimeStart);
 	printf("dAngle              = %f\n", (double)s->dAngle);
@@ -48,7 +48,7 @@ void dump_LIMMETADATA_DESC_struct(LIMMETADATA_DESC *s)
 	}
 }
 
-void dump_LIMTEXTINFO_struct(LIMTEXTINFO *s)
+void dump_LIMTEXTINFO_struct(const LIMTEXTINFO *s)
 {
     printf("wszImageID          = %ls\n", (LIMWSTR)s->wszImageID);
     printf("wszType             = %ls\n", (LIMWSTR)s->wszType);
@@ -67,7 +67,7 @@ void dump_LIMTEXTINFO_struct(LIMTEXTINFO *s)
     printf("wszAppVersion       = %ls\n", (LIMWSTR)s->wszAppVersion);
 }
 
-void dump_LIMPICTUREPLANE_DESC_struct(LIMPICTUREPLANE_DESC *s)
+void dump_LIMPICTUREPLANE_DESC_struct(const LIMPICTUREPLANE_DESC *s)
 {
     printf("    uiCompCount     = %d\n", (long)s->uiCompCount);
     printf("    uiColorRGB      = %d\n", (long)s->uiColorRGB);
@@ -76,14 +76,14 @@ void dump_LIMPICTUREPLANE_DESC_struct(LIMPICTUREPLANE_DESC *s)
     printf("    dEmissionWL     = %f\n", (double)s->dEmissionWL);
 }
 
-void dump_LIMEXPERIMENTLEVEL_struct(LIMEXPERIMENTLEVEL *s)
+void dump_LIMEXPERIMENTLEVEL_struct(const LIMEXPERIMENTLEVEL *s)
 {
     printf("    uiExpType       = %d\n", (long)s->uiExpType);
     printf("    uiLoopSize      = %d\n", (long)s->uiLoopSize);
     printf("    dInterval       = %f\n", (double)s->dInterval);
 }
 
-void dump_LIMEXPERIMENT_struct(LIMEXPERIMENT *s)
+void dump_LIMEXPERIMENT_struct(const LIMEXPERIMENT *s)
 {
     printf("uiLevelCount        = %d\n", (long)s->uiLevelCount);
     for (int i = 0; i < LIMMAXEXPERIMENTLEVEL; i++)
@@ -93,7 +93,7 @@ void dump_LIMEXPERIMENT_struct(LIMEXPERIMENT *s)
     }
 }
 
-void dump_LIMPICTURE_struct(LIMPICTURE *s)
+void dump_LIMPICTURE_struct(const LIMPICTURE *s)
 {
     printf("uiWidth             = %d\n", (long)s->uiWidth);;
     printf("uiHeight            = %d\n", (long)s->uiHeight);
@@ -110,7 +110,7 @@ void dump_LIMPICTURE_struct(LIMPICTURE *s)
 
 ----------------------------------------------------------------------------- */
 
-PyObject* LIMATTRIBUTES_to_dict(LIMATTRIBUTES *s)
+PyObject* LIMATTRIBUTES_to_dict(const LIMATTRIBUTES *s)
 {
     // Create a dictionary
     PyObject* d = PyDict_New();
@@ -143,7 +143,7 @@ PyObject* LIMATTRIBUTES_to_dict(LIMATTRIBUTES *s)
     return d;
 }
 
-PyObject* LIMMETADATA_DESC_to_dict(LIMMETADATA_DESC *s)
+PyObject* LIMMETADATA_DESC_to_dict(const LIMMETADATA_DESC *s)
 {
 
     // Create a dictionary
@@ -197,7 +197,7 @@ PyObject* LIMMETADATA_DESC_to_dict(LIMMETADATA_DESC *s)
     return d;
 }
 
-PyObject* LIMTEXTINFO_to_dict(LIMTEXTINFO * s)
+PyObject* LIMTEXTINFO_to_dict(const LIMTEXTINFO * s)
 {
     // Create a dictionary
     PyObject* d = PyDict_New();
@@ -238,7 +238,7 @@ PyObject* LIMTEXTINFO_to_dict(LIMTEXTINFO * s)
     return d;
 }
 
-PyObject* LIMPICTUREPLANE_DESC_to_dict(LIMPICTUREPLANE_DESC * s)
+PyObject* LIMPICTUREPLANE_DESC_to_dict(const LIMPICTUREPLANE_DESC * s)
 {
     // Create a dictionary
     PyObject* d = PyDict_New();
@@ -259,7 +259,7 @@ PyObject* LIMPICTUREPLANE_DESC_to_dict(LIMPICTUREPLANE_DESC * s)
     return d;
 }
 
-PyObject* LIMEXPERIMENTLEVEL_to_dict(LIMEXPERIMENTLEVEL * s)
+PyObject* LIMEXPERIMENTLEVEL_to_dict(const LIMEXPERIMENTLEVEL * s)
 {
     // Create a dictionary
     PyObject* d = PyDict_New();
@@ -276,7 +276,7 @@ PyObject* LIMEXPERIMENTLEVEL_to_dict(LIMEXPERIMENTLEVEL * s)
     return d;
 }
 
-PyObject* LIMEXPERIMENT_to_dict(LIMEXPERIMENT * s)
+PyObject* LIMEXPERIMENT_to_dict(const LIMEXPERIMENT * s)
 {
     // Create a dictionary
     PyObject* d = PyDict_New();
@@ -311,19 +311,19 @@ PyObject* LIMEXPERIMENT_to_dict(LIMEXPERIMENT * s)
 
 ----------------------------------------------------------------------------- */
 
-float *get_float_pointer_to_picture_data(LIMPICTURE * p)
+float *get_float_pointer_to_picture_data(const LIMPICTURE * p)
 {
     return (float *)p->pImageData;
 }
 
 
-uint16_t *get_uint16_pointer_to_picture_data(LIMPICTURE * p)
+uint16_t *get_uint16_pointer_to_picture_data(const LIMPICTURE * p)
 {
     return (uint16_t *)p->pImageData;
 }
 
 
-uint8_t *get_uint8_pointer_to_picture_data(LIMPICTURE * p)
+uint8_t *get_uint8_pointer_to_picture_data(const LIMPICTURE * p)
 {
     return (uint8_t *)p->pImageData;
 }
@@ -339,7 +339,7 @@ void load_image_data(int hFile, LIMPICTURE *picture, unsigned int uiSeqIndex)
     // Initialize the picture
     Lim_InitPicture(picture, attr.uiWidth, attr.uiHeight, attr.uiBpcSignificant, attr.uiComp);
 
-    // Load tge picture into the prepared buffer
+    // Load the picture into the prepared buffer
     Lim_FileGetImageData(hFile, uiSeqIndex, picture, &meta);
 
 }

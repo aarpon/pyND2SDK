@@ -43,6 +43,15 @@ cdef extern from "nd2ReadSDK.h":
     # Defining them as enum allows declarations such as array[number]
     enum: LIMMAXPICTUREPLANES
     enum: LIMMAXEXPERIMENTLEVEL
+    enum: LIMMAXBINARIES
+    enum: LIM_OK
+    enum: LIMLOOP_TIME
+    enum: LIMLOOP_MULTIPOINT
+    enum: LIMLOOP_Z
+    enum: LIMLOOP_OTHER
+    enum: LIMSTRETCH_QUICK
+    enum: LIMSTRETCH_SPLINES
+    enum: LIMSTRETCH_LINEAR
 
     # File handle
     ctypedef int LIMFILEHANDLE
@@ -52,6 +61,9 @@ cdef extern from "nd2ReadSDK.h":
 
     # Unsigned integer
     ctypedef unsigned int LIMUINT
+
+    # Signed indeger
+    ctypedef int LIMINT
 
     # Wide char
     ctypedef wchar_t LIMWCHAR "wchar_t"
@@ -100,28 +112,71 @@ cdef extern from "nd2ReadSDK.h":
         pass
 
     # Open file for reading (and return file handle)
-    LIMRESULT _Lim_FileOpenForRead "Lim_FileOpenForRead"(LIMCWSTR wszFileName)
+    LIMRESULT _Lim_FileOpenForRead \
+            "Lim_FileOpenForRead"(LIMCWSTR wszFileName)
 
     # Close the file with given handle
-    LIMRESULT _Lim_FileClose "Lim_FileClose"(LIMFILEHANDLE file_handle)
+    LIMRESULT _Lim_FileClose \
+            "Lim_FileClose"(LIMFILEHANDLE file_handle)
 
     # Get the attributes
-    LIMRESULT _Lim_FileGetAttributes "Lim_FileGetAttributes"(LIMFILEHANDLE hFile, LIMATTRIBUTES* attr)
+    LIMRESULT _Lim_FileGetAttributes \
+            "Lim_FileGetAttributes"(LIMFILEHANDLE hFile,
+                                    LIMATTRIBUTES* attr)
 
     # Get the metadata
-    LIMRESULT _Lim_FileGetMetadata "Lim_FileGetMetadata"(LIMFILEHANDLE hFile, LIMMETADATA_DESC* meta)
+    LIMRESULT _Lim_FileGetMetadata \
+            "Lim_FileGetMetadata"(LIMFILEHANDLE hFile,
+                                  LIMMETADATA_DESC* meta)
 
     # Get the the text info
-    LIMRESULT _Lim_FileGetTextinfo "Lim_FileGetTextinfo"(LIMFILEHANDLE hFile, LIMTEXTINFO* info)
+    LIMRESULT _Lim_FileGetTextinfo \
+            "Lim_FileGetTextinfo"(LIMFILEHANDLE hFile,
+                                  LIMTEXTINFO* info)
 
     # Get the experiment
-    LIMRESULT _Lim_FileGetExperiment "Lim_FileGetExperiment"(LIMFILEHANDLE hFile, LIMEXPERIMENT* exp)
+    LIMRESULT _Lim_FileGetExperiment \
+            "Lim_FileGetExperiment"(LIMFILEHANDLE hFile,
+                                    LIMEXPERIMENT* exp)
 
     # Initialize a picture
-    LIMSIZE _Lim_InitPicture "Lim_InitPicture"(LIMPICTURE* pPicture, LIMUINT width, LIMUINT height, LIMUINT bpc, LIMUINT components)
+    LIMSIZE _Lim_InitPicture \
+            "Lim_InitPicture"(LIMPICTURE* pPicture,
+                              LIMUINT width,
+                              LIMUINT height,
+                              LIMUINT bpc,
+                              LIMUINT components)
 
     # Get image data
-    LIMRESULT _Lim_FileGetImageData "Lim_FileGetImageData"(LIMFILEHANDLE hFile, LIMUINT uiSeqIndex, LIMPICTURE* pPicture, LIMLOCALMETADATA* pImgInfo)
+    LIMRESULT _Lim_FileGetImageData \
+            "Lim_FileGetImageData"(LIMFILEHANDLE hFile,
+                                   LIMUINT uiSeqIndex,
+                                   LIMPICTURE* pPicture,
+                                   LIMLOCALMETADATA* pImgInfo)
 
     # Destroy a picture
-    void _Lim_DestroyPicture "Lim_DestroyPicture"(LIMPICTURE* pPicture)
+    void _Lim_DestroyPicture \
+            "Lim_DestroyPicture"(LIMPICTURE* pPicture)
+
+    # Get sequence index from coordinates
+    LIMUINT _Lim_GetSeqIndexFromCoords\
+            "Lim_GetSeqIndexFromCoords"(LIMEXPERIMENT* pExperiment,
+                                        LIMUINT* pExpCoords)
+
+    # Get coordinates from sequence index
+    void _Lim_GetCoordsFromSeqIndex\
+            "Lim_GetCoordsFromSeqIndex"(LIMEXPERIMENT* pExperiment,
+                                        LIMUINT uiSeqIdx,
+                                        LIMUINT* pExpCoords);
+
+    # Read the stage coordinates
+    LIMRESULT _Lim_GetStageCoordinates \
+            "_Lim_GetStageCoordinates"(LIMFILEHANDLE hFile,
+                                       LIMUINT uiPosCount,
+                                       LIMUINT* puiSeqIdx,
+                                       LIMUINT* puiXPos,
+                                       LIMUINT* puiYPos,
+                                       double* pdXPos,
+                                       double *pdYPos,
+                                       double *pdZPos,
+                                       LIMINT iUseAlignment)

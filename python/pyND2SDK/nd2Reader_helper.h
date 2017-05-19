@@ -12,13 +12,13 @@
 
 ----------------------------------------------------------------------------- */
 
-void dump_LIMATTRIBUTES_struct(LIMATTRIBUTES *s);
-void dump_LIMMETADATA_DESC_struct(LIMMETADATA_DESC *s);
-void dump_LIMTEXTINFO_struct(LIMTEXTINFO *s);
-void dump_LIMPICTUREPLANE_DESC_struct(LIMPICTUREPLANE_DESC *s);
-void dump_LIMEXPERIMENTLEVEL_struct(LIMEXPERIMENTLEVEL *s);
-void dump_LIMEXPERIMENT_struct(LIMEXPERIMENT *s);
-void dump_LIMPICTURE_struct(LIMPICTURE *p);
+void dump_LIMATTRIBUTES_struct(const LIMATTRIBUTES *s);
+void dump_LIMMETADATA_DESC_struct(const LIMMETADATA_DESC *s);
+void dump_LIMTEXTINFO_struct(const LIMTEXTINFO *s);
+void dump_LIMPICTUREPLANE_DESC_struct(const LIMPICTUREPLANE_DESC *s);
+void dump_LIMEXPERIMENTLEVEL_struct(const LIMEXPERIMENTLEVEL *s);
+void dump_LIMEXPERIMENT_struct(const LIMEXPERIMENT *s);
+void dump_LIMPICTURE_struct(const LIMPICTURE *p);
 
 
 /* -----------------------------------------------------------------------------
@@ -27,12 +27,12 @@ void dump_LIMPICTURE_struct(LIMPICTURE *p);
 
 ----------------------------------------------------------------------------- */
 
-PyObject* LIMATTRIBUTES_to_dict(LIMATTRIBUTES *s);
-PyObject* LIMMETADATA_DESC_to_dict(LIMMETADATA_DESC *s);
-PyObject* LIMTEXTINFO_to_dict(LIMTEXTINFO * s);
-PyObject* LIMPICTUREPLANE_DESC_to_dict(LIMPICTUREPLANE_DESC * s);
-PyObject* LIMEXPERIMENTLEVEL_to_dict(LIMEXPERIMENTLEVEL * s);
-PyObject* LIMEXPERIMENT_to_dict(LIMEXPERIMENT * s);
+PyObject* LIMATTRIBUTES_to_dict(const LIMATTRIBUTES *s);
+PyObject* LIMMETADATA_DESC_to_dict(const LIMMETADATA_DESC *s);
+PyObject* LIMTEXTINFO_to_dict(const LIMTEXTINFO * s);
+PyObject* LIMPICTUREPLANE_DESC_to_dict(const LIMPICTUREPLANE_DESC * s);
+PyObject* LIMEXPERIMENTLEVEL_to_dict(const LIMEXPERIMENTLEVEL * s);
+PyObject* LIMEXPERIMENT_to_dict(const LIMEXPERIMENT * s);
 
 /* -----------------------------------------------------------------------------
 
@@ -40,9 +40,9 @@ PyObject* LIMEXPERIMENT_to_dict(LIMEXPERIMENT * s);
 
 ----------------------------------------------------------------------------- */
 
-float *get_float_pointer_to_picture_data(LIMPICTURE * p);
-uint16_t * get_uint16_pointer_to_picture_data(LIMPICTURE * p);
-uint8_t * get_uint8_pointer_to_picture_data(LIMPICTURE * p);
+float *get_float_pointer_to_picture_data(const LIMPICTURE * p);
+uint16_t * get_uint16_pointer_to_picture_data(const LIMPICTURE * p);
+uint8_t * get_uint8_pointer_to_picture_data(const LIMPICTURE * p);
 void load_image_data(int hFile, LIMPICTURE *p, unsigned int uiSeqIndex);
 
 #endif

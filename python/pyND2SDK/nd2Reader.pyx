@@ -8,9 +8,8 @@ np.import_array()
 # from libc.stdlib cimport free
 from libc.stddef cimport wchar_t
 
-DEBUG = False
 
-# (Hybrid) picture class
+# Picture class
 cdef class Picture:
     cdef LIMPICTURE picture
     cdef int width
@@ -35,9 +34,6 @@ cdef class Picture:
         load_image_data(hFile, &temp, seqIndex)
         self.picture = temp
 
-    cdef dump(self):
-        dump_LIMPICTURE_struct(&self.picture)
-
     def __dealloc__(self):
         """
         Destructor.
@@ -56,19 +52,18 @@ cdef class Picture:
         :rtype: np.array (memoryview)
         """
 
-        cdef LIMPICTURE pic = self.picture
         cdef np.ndarray np_arr
 
         # Create a memory view to the data
         if self.bpc == 8:
-            np_arr = to_uint8_numpy_array(&pic, self.height, self.width,
-                                          self.n_components, comp)
+            np_arr = to_uint8_numpy_array(&self.picture, self.height,
+                                          self.width, self.n_components, comp)
         elif 8 < self.bpc <= 16:
-            np_arr = to_uint16_numpy_array(&pic, self.height, self.width,
-                                           self.n_components, comp)
+            np_arr = to_uint16_numpy_array(&self.picture, self.height,
+                                           self.width, self.n_components, comp)
         elif self.bpc == 32:
-            np_arr = to_float_numpy_array(&pic, self.height, self.width,
-                                          self.n_components, comp)
+            np_arr = to_float_numpy_array(&self.picture, self.height,
+                                          self.width, self.n_components, comp)
         else:
             raise ValueError("Unexpected value for bpc!")
 
@@ -79,11 +74,21 @@ cdef class Picture:
         return self.n_components
 
 
-class nd2Reader:
+cdef class nd2Reader:
+    """
+    ND2 Reader class.
+    """
+
+    cdef LIMFILEHANDLE file_handle
+    cdef LIMEXPERIMENT exp
+    cdef LIMATTRIBUTES attr
+    cdef LIMMETADATA_DESC meta
+    cdef LIMTEXTINFO info
+
+    cdef public file_name
+    cdef dict Pictures
 
     def __init__(self):
-        self.attr = None
-        self.meta = None
         self.file_name = ""
         self.file_handle = 0
         self.Pictures = {}
@@ -111,119 +116,110 @@ class nd2Reader:
         self.file_handle = _Lim_FileOpenForRead(w_filename)
         return self.file_handle
 
+    def __repr__(self):
+        """
+        Display summary of the reader state.
+        :return:
+        :rtype:
+        """
+        if not self.is_open():
+            return "ND2Reader: no file opened"
+        else:
+            return "ND2Reader: file open"
+
     def is_open(self):
+        """
+        Checks if the file is open.
+        :return: True if the file is open, False otherwise.
+        :rtype: bool
+        """
         return self.file_handle != 0
 
     def close(self):
         """
-        Closes the file with given handle.
-        :param file_handle: file handle returned by LIM_FileOpenForRead()
-        :type file_handle: int
-        :return: result of closing the file
-        :rtype: int
+        Closes the file.
         """
 
         # Close the file
         if self.is_open():
             self.file_handle = _Lim_FileClose(self.file_handle)
-        return self.file_handle
 
     def get_attributes(self):
         """
         Retrieves the file attributes or throws an Exception if it failed.
-        :param file_handle: handle of the open file.
-        :type file_handle: int
-        :return: LIMATTRIBUTES structure mapped to a python dictionary
+
+        The attributes are the LIMATTRIBUTES C structure mapped to a
+        python dictionary.
+
+        :return: File attributes.
         :rtype: dict
         """
-        cdef LIMATTRIBUTES attr;
-        if _Lim_FileGetAttributes(self.file_handle, &attr) !=0:
+
+        if _Lim_FileGetAttributes(self.file_handle, &self.attr) != LIM_OK:
             raise Exception("Could not retrieve the file attributes!")
 
         # Convert to dict
-        d = LIMATTRIBUTES_to_dict(&attr)
-
-        if DEBUG:
-            import pprint
-            dump_LIMATTRIBUTES_struct(&attr)
-            pprint.pprint(d)
-
-        return d
+        return LIMATTRIBUTES_to_dict(&self.attr)
 
     def get_metadata(self):
         """
         Retrieves the file metadata or throws an Exception if it failed.
-        :param file_handle: handle of the open file.
-        :type file_handle: int
-        :return: LIMMETADATA_DESC structure mapped to a python dictionary
+
+        The metadata is the LIMMETADATA_DESC C structure mapped to a
+        python dictionary.
+
+        :return: file metadata
         :rtype: dict
         """
-        cdef LIMMETADATA_DESC meta;
-        if _Lim_FileGetMetadata(self.file_handle, &meta) !=0:
+
+        if _Lim_FileGetMetadata(self.file_handle, &self.meta) != LIM_OK:
             raise Exception("Could not retrieve the file metadata!")
 
         # Convert to dict
-        d = LIMMETADATA_DESC_to_dict(&meta)
-
-        if DEBUG:
-            import pprint
-            dump_LIMMETADATA_DESC_struct(&meta)
-            pprint.pprint(d)
-
-        return d
+        return LIMMETADATA_DESC_to_dict(&self.meta)
 
     def get_text_info(self):
         """
         Retrieves the text info or throws an Exception if it failed.
-        :param file_handle: handle of the open file.
-        :type file_handle: int
-        :return: LIMTEXTINFO structure mapped to a python dictionary
+
+        The text info is the LIMTEXTINFO C structure mapped to a
+        python dictionary.
+
+        :return: file text info
         :rtype: dict
         """
-        cdef LIMTEXTINFO info;
-        if _Lim_FileGetTextinfo(self.file_handle, &info) !=0:
+
+        if _Lim_FileGetTextinfo(self.file_handle, &self.info) != LIM_OK:
             raise Exception("Could not retrieve the text info!")
 
         # Convert to dict
-        d = LIMTEXTINFO_to_dict(&info)
-
-        if DEBUG:
-            import pprint
-            dump_LIMTEXTINFO_struct(&info)
-            pprint.pprint(d)
-
-        return d
+        return LIMTEXTINFO_to_dict(&self.info)
 
     def get_experiment(self):
         """
         Retrieves the experiment info or throws an Exception if it failed.
-        :param file_handle: handle of the open file.
-        :type file_handle: int
-        :return: LIMMETADATA_DESC structure mapped to a python dictionary
+
+        The experiment is the LIMEXPERIMENT C structure mapped to a
+        python dictionary.
+
+        :return: experiment
         :rtype: dict
         """
-        cdef LIMEXPERIMENT exp;
-        if _Lim_FileGetExperiment(self.file_handle, &exp) !=0:
+        if _Lim_FileGetExperiment(self.file_handle, &self.exp) != LIM_OK:
             raise Exception("Could not retrieve the experiment info!")
 
         # Convert to dict
-        d = LIMEXPERIMENT_to_dict(&exp)
-
-        if DEBUG:
-            import pprint
-            dump_LIMEXPERIMENT_struct(&exp)
-            pprint.pprint(d)
-
-        return d
+        return LIMEXPERIMENT_to_dict(&self.exp)
 
     # Data access
     def load(self, LIMUINT index):
-        """Loads and stores a picture.
+        """Loads, stores a return the picture.
 
         :param index: index of the sequence (image) to load
         :type height: unsigned int
-        :return: image a numpy array
-        :rtype: numpy array
+
+        :return: Picture object
+        :rtype: PyND2SDK.Picture
         """
 
         if self.file_handle is None:
@@ -248,7 +244,7 @@ class nd2Reader:
 
     def get_picture(self, seqIndex):
         """
-        Return the Picture as given sequence index. The sequence is loaded
+        Return the Picture for given sequence index. The sequence is loaded
         if necessary.
         :param seqIndex: index of the sequence to load
         :type n: int
@@ -260,6 +256,14 @@ class nd2Reader:
 
         return self.Pictures[seqIndex]
 
+    def get_sequence_index_from_coords(self):
+        raise Exception("Implement me!")
+
+    def get_coords_from_sequence_index(self):
+        raise Exception("Implement me!")
+
+    def get_stage_coordinates(self):
+        raise Exception("Implement me!")
 
 # Clean (own) memory when finalizing the array
 cdef class _finalizer:
