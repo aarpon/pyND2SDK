@@ -106,7 +106,8 @@ void dump_LIMPICTURE_struct(const LIMPICTURE *s)
 
 /* -----------------------------------------------------------------------------
 
-    Conversion functions: map LIM structures to python dictionaries
+    Conversion functions: map LIM structures to python dictionaries;
+    and other mappings.
 
 ----------------------------------------------------------------------------- */
 
@@ -267,6 +268,32 @@ PyObject* LIMEXPERIMENTLEVEL_to_dict(const LIMEXPERIMENTLEVEL * s)
     // Add values
     PyDict_SetItemString(d, "uiExpType",
             PyLong_FromLong((long)s->uiExpType));
+    if (s->uiExpType == LIMLOOP_TIME)
+    {
+        PyDict_SetItemString(d, "uiExpTypeStr",
+            PyUnicode_FromWideChar(L"LIMLOOP_TIME", -1));
+    }
+    else if (s->uiExpType == LIMLOOP_MULTIPOINT)
+    {
+        PyDict_SetItemString(d, "uiExpTypeStr",
+            PyUnicode_FromWideChar(L"LIMLOOP_MULTIPOINT", -1));
+    }
+    else if (s->uiExpType == LIMLOOP_Z)
+    {
+        PyDict_SetItemString(d, "uiExpTypeStr",
+            PyUnicode_FromWideChar(L"LIMLOOP_Z", -1));
+    }
+    else if (s->uiExpType == LIMLOOP_OTHER)
+    {
+        PyDict_SetItemString(d, "uiExpTypeStr",
+            PyUnicode_FromWideChar(L"LIMLOOP_OTHER", -1));
+    }
+    else
+    {
+        printf("Error: unexpected uiExpType found!");
+        PyDict_SetItemString(d, "uiExpTypeStr",
+            PyUnicode_FromWideChar(L"LIMLOOP_ERROR", -1));
+    }
     PyDict_SetItemString(d, "uiLoopSize",
             PyLong_FromLong((long)s->uiLoopSize));
     PyDict_SetItemString(d, "dInterval",
@@ -286,9 +313,9 @@ PyObject* LIMEXPERIMENT_to_dict(const LIMEXPERIMENT * s)
             PyLong_FromLong((long)s->uiLevelCount));
 
     // Create a list to add the LIMEXPERIMENTLEVEL objects.
-    PyObject* l = PyList_New((Py_ssize_t) LIMMAXEXPERIMENTLEVEL);
+    PyObject* l = PyList_New((Py_ssize_t) s->uiLevelCount);
 
-    for (int i = 0; i < (Py_ssize_t) LIMMAXEXPERIMENTLEVEL; i++)
+    for (int i = 0; i < (Py_ssize_t) s->uiLevelCount; i++)
     {
         // Map the LIMEXPERIMENTLEVEL struct to a dictionary
         PyObject* p = LIMEXPERIMENTLEVEL_to_dict(&(s->pAllocatedLevels[i]));
@@ -303,6 +330,20 @@ PyObject* LIMEXPERIMENT_to_dict(const LIMEXPERIMENT * s)
 
     // Return
     return d;
+}
+
+PyObject* int_pointer_to_list(LIMUINT *p)
+{
+    // Create a list to add the LIMEXPERIMENTLEVEL objects.
+    PyObject* l = PyList_New((Py_ssize_t) LIMMAXEXPERIMENTLEVEL);
+
+    for (int i = 0; i < LIMMAXEXPERIMENTLEVEL; i++)
+    {
+        // Store the number into the list
+        PyList_SetItem(l, i, PyLong_FromLong((long) *(p + i)));
+    }
+
+    return l;
 }
 
 /* -----------------------------------------------------------------------------
@@ -341,5 +382,41 @@ void load_image_data(int hFile, LIMPICTURE *picture, unsigned int uiSeqIndex)
 
     // Load the picture into the prepared buffer
     Lim_FileGetImageData(hFile, uiSeqIndex, picture, &meta);
+
+}
+
+/* -----------------------------------------------------------------------------
+
+    Metadata access functions
+
+----------------------------------------------------------------------------- */
+
+void parse_coords(LIMEXPERIMENT *exp, LIMUINT *coords)
+{
+    /**
+        How this is supposed to work and be used is still uncler.
+    */
+
+    // Set coords for all experiment levels to 0
+   for(unsigned int i=0; i < LIMMAXEXPERIMENTLEVEL; i++)
+   {
+       *(coords + i) = 0;
+   }
+
+   LIMEXPERIMENTLEVEL *pExpLevel = NULL;
+
+   for(unsigned int i=0; i < exp->uiLevelCount; i++)
+   {
+       coords[exp->pAllocatedLevels[i].uiExpType] = exp->pAllocatedLevels[i].uiLoopSize/2;
+   }
+
+   LIMUINT uiIndex = Lim_GetSeqIndexFromCoords(exp, coords);
+
+   for(unsigned int i=0; i < exp->uiLevelCount; i++)
+   {
+       coords[exp->pAllocatedLevels[i].uiExpType] = 0;
+   }
+
+   Lim_GetCoordsFromSeqIndex(exp, uiIndex, coords);
 
 }

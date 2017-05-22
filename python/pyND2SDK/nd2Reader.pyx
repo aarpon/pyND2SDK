@@ -227,14 +227,14 @@ cdef class nd2Reader:
 
         # Get the attributes
         attr = self.get_attributes()
-        # Create a new Picture object
-        width = attr['uiWidth']
-        height = attr['uiHeight']
-        bpc = attr['uiBpcSignificant']
-        components = attr['uiComp']
 
         # Create a new Picture objects that loads the requested image
-        p = Picture(width, height, bpc, components, self.file_handle, index)
+        p = Picture(attr['uiWidth'],
+                    attr['uiHeight'],
+                    attr['uiBpcSignificant'],
+                    attr['uiComp'],
+                    self.file_handle,
+                    index)
 
         # Store the picture
         self.Pictures[index] = p
@@ -247,7 +247,7 @@ cdef class nd2Reader:
         Return the Picture for given sequence index. The sequence is loaded
         if necessary.
         :param seqIndex: index of the sequence to load
-        :type n: int
+        :type seqIndex: int
         :return: picture
         :rtype: Picture
         """
@@ -256,11 +256,18 @@ cdef class nd2Reader:
 
         return self.Pictures[seqIndex]
 
-    def get_sequence_index_from_coords(self):
-        raise Exception("Implement me!")
+    def get_coords(self):
 
-    def get_coords_from_sequence_index(self):
-        raise Exception("Implement me!")
+        # Make sure the experiment has been loaded
+        self.get_experiment()
+
+        cdef LIMUINT[LIMMAXEXPERIMENTLEVEL] pExpCoords;
+        parse_coords(&self.exp, pExpCoords)
+
+        # Return the coordinates as list
+        coords = int_pointer_to_list(pExpCoords)
+
+        return coords
 
     def get_stage_coordinates(self):
         raise Exception("Implement me!")

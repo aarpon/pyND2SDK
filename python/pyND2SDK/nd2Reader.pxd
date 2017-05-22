@@ -30,11 +30,17 @@ cdef extern from "nd2Reader_helper.h":
     object LIMEXPERIMENTLEVEL_to_dict(LIMEXPERIMENTLEVEL * s)
     object LIMEXPERIMENT_to_dict(LIMEXPERIMENT * s)
 
+    # Other conversion functions
+    object int_pointer_to_list(unsigned int *p)
+
     # Data functions
     float * get_float_pointer_to_picture_data(LIMPICTURE * p)
     uint16_t * get_uint16_pointer_to_picture_data(LIMPICTURE * p)
     uint8_t * get_uint8_pointer_to_picture_data(LIMPICTURE * p)
-    void load_image_data(int hFile, LIMPICTURE *p, unsigned int uiSeqIndex)
+    void load_image_data(int hFile, LIMPICTURE *p, int uiSeqIndex)
+
+    # Metadata functions
+    void parse_coords(LIMEXPERIMENT *exp, unsigned int *coords)
 
 cdef extern from "nd2ReadSDK.h":
 
@@ -159,12 +165,12 @@ cdef extern from "nd2ReadSDK.h":
             "Lim_DestroyPicture"(LIMPICTURE* pPicture)
 
     # Get sequence index from coordinates
-    LIMUINT _Lim_GetSeqIndexFromCoords\
+    LIMUINT _Lim_GetSeqIndexFromCoords \
             "Lim_GetSeqIndexFromCoords"(LIMEXPERIMENT* pExperiment,
                                         LIMUINT* pExpCoords)
 
     # Get coordinates from sequence index
-    void _Lim_GetCoordsFromSeqIndex\
+    void _Lim_GetCoordsFromSeqIndex \
             "Lim_GetCoordsFromSeqIndex"(LIMEXPERIMENT* pExperiment,
                                         LIMUINT uiSeqIdx,
                                         LIMUINT* pExpCoords);

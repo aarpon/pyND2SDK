@@ -1,9 +1,16 @@
 from pyND2SDK import nd2Reader
 import matplotlib.pyplot as plt
+from pprint import pprint
+import os
+
 
 if __name__ == "__main__":
 
-    filename = "F:/Data/openBIS_test_data/microscopy/Performance_Issue/beads001.nd2"
+    currDir = os.path.dirname(os.path.realpath(__file__).replace("\\", "/"))
+
+    filename = os.path.join(currDir, "tests/files/file03.nd2")
+
+    print(filename)
 
     r = nd2Reader.nd2Reader()
 
@@ -15,15 +22,23 @@ if __name__ == "__main__":
 
     # Retrieve the attributes
     attr = r.get_attributes()
+    pprint(attr)
 
     # Retrieve the metadata
     meta = r.get_metadata()
+    pprint(meta)
 
     # Retrieve the text info
     info = r.get_text_info()
+    pprint(info)
 
     # Retrieve the experiment info
     exp = r.get_experiment()
+    pprint(exp)
+
+    # Get the coordinates for the first sequence
+    coords = r.get_coords()
+    pprint(coords)
 
     # Create an empty picture with the correct size
     sequence = r.load(0)
