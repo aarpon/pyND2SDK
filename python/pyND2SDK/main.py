@@ -20,6 +20,8 @@ if __name__ == "__main__":
         print('Could not open ND2 file!')
         exit(1)
 
+    print(r.get_geometry())
+
     # Retrieve the attributes
     attr = r.get_attributes()
     pprint(attr)
@@ -36,7 +38,7 @@ if __name__ == "__main__":
     exp = r.get_experiment()
     pprint(exp)
 
-    # Get the coordinates for the first sequence
+    # Get the coordinates
     coords = r.get_coords()
     pprint(coords)
 
@@ -58,7 +60,7 @@ if __name__ == "__main__":
     print(img.dtype)
 
     # Close the file
-    r.close()
+    print(r.close())
     if r.is_open():
         print('Could not close ND2 file!')
         exit(1)

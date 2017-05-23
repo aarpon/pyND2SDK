@@ -13,6 +13,9 @@ cdef extern from "wchar.h":
 
 cdef extern from "nd2Reader_helper.h":
 
+    ctypedef int LIMFILEHANDLE
+    ctypedef unsigned int LIMUINT
+
     # DEBUG functions
     void dump_LIMATTRIBUTES_struct(LIMATTRIBUTES *s)
     void dump_LIMMETADATA_DESC_struct(LIMMETADATA_DESC *s)
@@ -40,7 +43,7 @@ cdef extern from "nd2Reader_helper.h":
     void load_image_data(int hFile, LIMPICTURE *p, int uiSeqIndex)
 
     # Metadata functions
-    void parse_coords(LIMEXPERIMENT *exp, unsigned int *coords)
+    void parse_coords(LIMEXPERIMENT *exp, LIMUINT *coords)
 
 cdef extern from "nd2ReadSDK.h":
 
@@ -173,16 +176,16 @@ cdef extern from "nd2ReadSDK.h":
     void _Lim_GetCoordsFromSeqIndex \
             "Lim_GetCoordsFromSeqIndex"(LIMEXPERIMENT* pExperiment,
                                         LIMUINT uiSeqIdx,
-                                        LIMUINT* pExpCoords);
+                                        LIMUINT* pExpCoords)
 
     # Read the stage coordinates
     LIMRESULT _Lim_GetStageCoordinates \
-            "_Lim_GetStageCoordinates"(LIMFILEHANDLE hFile,
-                                       LIMUINT uiPosCount,
-                                       LIMUINT* puiSeqIdx,
-                                       LIMUINT* puiXPos,
-                                       LIMUINT* puiYPos,
-                                       double* pdXPos,
-                                       double *pdYPos,
-                                       double *pdZPos,
-                                       LIMINT iUseAlignment)
+            "Lim_GetStageCoordinates"(LIMFILEHANDLE hFile,
+                                      LIMUINT uiPosCount,
+                                      LIMUINT* puiSeqIdx,
+                                      LIMUINT* puiXPos,
+                                      LIMUINT* puiYPos,
+                                      double* pdXPos,
+                                      double *pdYPos,
+                                      double *pdZPos,
+                                      LIMINT iUseAlignment)

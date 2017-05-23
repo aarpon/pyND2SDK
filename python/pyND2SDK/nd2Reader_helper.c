@@ -271,22 +271,22 @@ PyObject* LIMEXPERIMENTLEVEL_to_dict(const LIMEXPERIMENTLEVEL * s)
     if (s->uiExpType == LIMLOOP_TIME)
     {
         PyDict_SetItemString(d, "uiExpTypeStr",
-            PyUnicode_FromWideChar(L"LIMLOOP_TIME", -1));
+            PyUnicode_FromWideChar(L"Time", -1));
     }
     else if (s->uiExpType == LIMLOOP_MULTIPOINT)
     {
         PyDict_SetItemString(d, "uiExpTypeStr",
-            PyUnicode_FromWideChar(L"LIMLOOP_MULTIPOINT", -1));
+            PyUnicode_FromWideChar(L"Multipoint", -1));
     }
     else if (s->uiExpType == LIMLOOP_Z)
     {
         PyDict_SetItemString(d, "uiExpTypeStr",
-            PyUnicode_FromWideChar(L"LIMLOOP_Z", -1));
+            PyUnicode_FromWideChar(L"Z", -1));
     }
     else if (s->uiExpType == LIMLOOP_OTHER)
     {
         PyDict_SetItemString(d, "uiExpTypeStr",
-            PyUnicode_FromWideChar(L"LIMLOOP_OTHER", -1));
+            PyUnicode_FromWideChar(L"Other", -1));
     }
     else
     {
@@ -394,7 +394,7 @@ void load_image_data(int hFile, LIMPICTURE *picture, unsigned int uiSeqIndex)
 void parse_coords(LIMEXPERIMENT *exp, LIMUINT *coords)
 {
     /**
-        How this is supposed to work and be used is still uncler.
+        How this is supposed to work and be used is still unclear to me.
     */
 
     // Set coords for all experiment levels to 0

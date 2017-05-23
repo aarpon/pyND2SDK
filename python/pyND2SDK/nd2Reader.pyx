@@ -17,7 +17,8 @@ cdef class Picture:
     cdef int bpc
     cdef int n_components
 
-    def __init__(self, width, height, bpc, n_components, hFile, seqIndex):
+    def __init__(self, int width, int height, int bpc, int n_components,
+                 LIMFILEHANDLE hFile, int seqIndex):
 
         # Store some arguments for easier access
         self.width = width
@@ -114,9 +115,22 @@ cdef class nd2Reader:
 
         # Open the file and return the handle
         self.file_handle = _Lim_FileOpenForRead(w_filename)
+
+        # Load the experiment
+        if _Lim_FileGetExperiment(self.file_handle, &self.exp) != LIM_OK:
+            raise Exception("Could not retrieve the experiment info!")
+
+        # Load the attributes
+        if _Lim_FileGetAttributes(self.file_handle, &self.attr) != LIM_OK:
+            raise Exception("Could not retrieve the file attributes!")
+
+        # Load the metadata
+        if _Lim_FileGetMetadata(self.file_handle, &self.meta) != LIM_OK:
+            raise Exception("Could not retrieve the file metadata!")
+
         return self.file_handle
 
-    def __repr__(self):
+    def __str__(self):
         """
         Display summary of the reader state.
         :return:
@@ -125,7 +139,81 @@ cdef class nd2Reader:
         if not self.is_open():
             return "ND2Reader: no file opened"
         else:
-            return "ND2Reader: file open"
+
+            # Get the geometry
+            geometry = self.get_geometry()
+
+            str = "File opened: %s\n" \
+                  "   XYZ = (%dx%dx%d), C = %d, T = %d\n" \
+                  "   Number of positions = %d (other = %d)\n" \
+                  "   %dbit (%d significant)\n" % \
+                  (self.file_name,
+                   geometry[0], geometry[1], geometry[2],
+                   geometry[3], geometry[4], geometry[5],
+                   geometry[6], geometry[7], geometry[8])
+
+            return str
+
+    def __repr__(self):
+        return self.__str__()
+
+    def get_geometry(self):
+        """
+        Returns the geometry of the dataset.
+
+        [x, y, z, c, t, m, o, b, s]
+
+            x: width
+            y: height
+            z: number of planes
+            c: number of channels
+            t: number of time points
+            m: number of positions
+            o: other
+            b: bit depth
+            s: significant bits
+
+        :return: geometry vector
+        :rtype: array
+        """
+
+        if not self.is_open():
+            return []
+
+        # Get data in pythonic form
+        exp = self.get_experiment()
+        attr = self.get_attributes()
+
+        x = 0
+        y = 0
+        z = 1
+        c = 1 # Number of channels
+        t = 1 # Number of timepoints
+        m = 1 # Number of positions
+        o = 0 # Other (?)
+        b = 0 # Bit depth
+        s = 0 # Significant bits
+
+        cdef int n_levels = exp['uiLevelCount']
+        for i in range(n_levels):
+            if exp['pAllocatedLevels'][i]['uiExpType'] == LIMLOOP_TIME:
+                t = exp['pAllocatedLevels'][i]['uiLoopSize']
+            elif exp['pAllocatedLevels'][i]['uiExpType'] == LIMLOOP_MULTIPOINT:
+                m = exp['pAllocatedLevels'][i]['uiLoopSize']
+            elif exp['pAllocatedLevels'][i]['uiExpType'] == LIMLOOP_Z:
+                z = exp['pAllocatedLevels'][i]['uiLoopSize']
+            elif exp['pAllocatedLevels'][i]['uiExpType'] == LIMLOOP_OTHER:
+                o = exp['pAllocatedLevels'][i]['uiLoopSize']
+            else:
+                raise Exception("Unexpected experiment level!")
+
+        x = attr['uiWidth']
+        y = attr['uiHeight']
+        c = attr['uiComp']
+        b = attr['uiBpcInMemory']
+        s = attr['uiBpcSignificant']
+
+        return [x, y, z, c, t, m, o, b, s]
 
     def is_open(self):
         """
@@ -144,6 +232,8 @@ cdef class nd2Reader:
         if self.is_open():
             self.file_handle = _Lim_FileClose(self.file_handle)
 
+        return self.file_handle
+
     def get_attributes(self):
         """
         Retrieves the file attributes or throws an Exception if it failed.
@@ -155,10 +245,7 @@ cdef class nd2Reader:
         :rtype: dict
         """
 
-        if _Lim_FileGetAttributes(self.file_handle, &self.attr) != LIM_OK:
-            raise Exception("Could not retrieve the file attributes!")
-
-        # Convert to dict
+        # Convert the attribute structure to dict
         return LIMATTRIBUTES_to_dict(&self.attr)
 
     def get_metadata(self):
@@ -172,10 +259,7 @@ cdef class nd2Reader:
         :rtype: dict
         """
 
-        if _Lim_FileGetMetadata(self.file_handle, &self.meta) != LIM_OK:
-            raise Exception("Could not retrieve the file metadata!")
-
-        # Convert to dict
+        # Convert metadata structure to dict
         return LIMMETADATA_DESC_to_dict(&self.meta)
 
     def get_text_info(self):
@@ -205,10 +289,8 @@ cdef class nd2Reader:
         :return: experiment
         :rtype: dict
         """
-        if _Lim_FileGetExperiment(self.file_handle, &self.exp) != LIM_OK:
-            raise Exception("Could not retrieve the experiment info!")
 
-        # Convert to dict
+        # Convert the experiment structure to dict
         return LIMEXPERIMENT_to_dict(&self.exp)
 
     # Data access
