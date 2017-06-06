@@ -25,6 +25,5 @@ setup(
                   library_dirs=[SDKLibPath]
                   )
     ]),
-    install_requires=['python_version>"3.4"'],
     requires=["Cython", "numpy"]
 )

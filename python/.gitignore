@@ -4,3 +4,4 @@
 /dist/
 /build/
 /pyND2SDK.egg-info/
+__pycache__/
