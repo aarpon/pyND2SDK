@@ -1,3 +1,6 @@
 /.vs/
 *.pyproj
 *.sln
+/dist/
+/build/
+/pyND2SDK.egg-info/

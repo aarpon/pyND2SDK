@@ -8,7 +8,7 @@ if __name__ == "__main__":
 
     currDir = os.path.dirname(os.path.realpath(__file__).replace("\\", "/"))
 
-    filename = os.path.join(currDir, "tests/files/file01.nd2")
+    filename = os.path.join(currDir, "test/files/file01.nd2")
 
     print(filename)
 
