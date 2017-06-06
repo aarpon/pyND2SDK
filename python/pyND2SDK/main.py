@@ -38,6 +38,12 @@ if __name__ == "__main__":
     exp = r.get_experiment()
     pprint(exp)
 
+    # Test index to subx
+    subs = r.map_index_to_subscripts(0)
+    pprint(subs)
+    index = r.map_subscripts_to_index(0, 0, 0, 0)
+    pprint(index)
+
     # Get the coordinates
     coords = r.get_stage_coordinates()
     pprint(coords)

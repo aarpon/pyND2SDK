@@ -55,6 +55,7 @@ void load_image_data(LIMFILEHANDLE hFile, LIMPICTURE *p, LIMLOCALMETADATA *m, un
 ----------------------------------------------------------------------------- */
 
 PyObject* index_to_subscripts(LIMUINT seq_index, LIMEXPERIMENT *exp, LIMUINT *coords);
+LIMUINT subscripts_to_index(LIMEXPERIMENT *exp, LIMUINT *coords);
 PyObject* parse_stage_coords(LIMFILEHANDLE f_handle, LIMATTRIBUTES attr, int iUseAlignment);
 
 #endif

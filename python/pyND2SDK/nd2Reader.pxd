@@ -42,8 +42,9 @@ cdef extern from "nd2Reader_helper.h":
     void load_image_data(int hFile, LIMPICTURE *p, LIMLOCALMETADATA *m, int uiSeqIndex)
 
     # Metadata functions
-    object index_to_subscripts(LIMUINT seq_index, LIMEXPERIMENT *exp, LIMUINT *coords);
-    object parse_stage_coords(LIMFILEHANDLE f, LIMATTRIBUTES a, int iUseAlignment);
+    object index_to_subscripts(LIMUINT seq_index, LIMEXPERIMENT *exp, LIMUINT *coords)
+    LIMUINT subscripts_to_index(LIMEXPERIMENT *exp, LIMUINT *coords)
+    object parse_stage_coords(LIMFILEHANDLE f, LIMATTRIBUTES a, int iUseAlignment)
 
 cdef extern from "nd2ReadSDK.h":
 

@@ -398,11 +398,22 @@ cdef class nd2Reader:
         self.get_experiment()
 
         cdef LIMUINT[LIMMAXEXPERIMENTLEVEL] pExpCoords;
-        subs = index_to_subscripts(seq_index, &self.exp, pExpCoords)
+        return index_to_subscripts(seq_index, &self.exp, pExpCoords)
 
-        return subs
+    def map_subscripts_to_index(self, time, point, plane, other = 0):
 
-    def get_stage_coordinates(self, iUseAlignment = 0):
+        # Make sure the experiment has been loaded
+        self.get_experiment()
+
+        cdef LIMUINT[LIMMAXEXPERIMENTLEVEL] pExpCoords;
+        pExpCoords[0] = time
+        pExpCoords[1] = point
+        pExpCoords[2] = plane
+        pExpCoords[3] = other
+
+        return subscripts_to_index(&self.exp, pExpCoords)
+
+    def get_stage_coordinates(self, use_alignment=0):
 
         # Make sure the file is open
         if not self.is_open():
@@ -413,7 +424,7 @@ cdef class nd2Reader:
 
         stage_coords = parse_stage_coords(self.file_handle,
                                           self.attr,
-                                          iUseAlignment)
+                                          use_alignment)
 
         return stage_coords
 

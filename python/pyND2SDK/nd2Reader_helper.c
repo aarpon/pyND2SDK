@@ -405,7 +405,7 @@ void load_image_data(LIMFILEHANDLE hFile, LIMPICTURE *picture, LIMLOCALMETADATA 
 
 PyObject* index_to_subscripts(LIMUINT seq_index, LIMEXPERIMENT *exp, LIMUINT *coords)
 {
-    // Convert the linear index to a point in the experiment coordinate system
+    // Convert the linear index to coordinates the experiment coordinate system
     Lim_GetCoordsFromSeqIndex(exp, seq_index, coords);
 
     // Now return the coordinate as a dictionary
@@ -423,6 +423,12 @@ PyObject* index_to_subscripts(LIMUINT seq_index, LIMEXPERIMENT *exp, LIMUINT *co
 
     // Return
     return d;
+}
+
+LIMUINT subscripts_to_index(LIMEXPERIMENT *exp, LIMUINT *coords)
+{
+    // Convert the point in the experiment coordinate system to a linear index
+    return Lim_GetSeqIndexFromCoords(exp, coords);
 }
 
 PyObject* parse_stage_coords(LIMFILEHANDLE f_handle, LIMATTRIBUTES attr,
