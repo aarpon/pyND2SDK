@@ -12,28 +12,33 @@ from libc.stddef cimport wchar_t
 # Picture class
 cdef class Picture:
     cdef LIMPICTURE picture
+    cdef LIMLOCALMETADATA metadata
     cdef int width
     cdef int height
     cdef int bpc
     cdef int n_components
+    cdef int seq_index
 
     def __init__(self, int width, int height, int bpc, int n_components,
-                 LIMFILEHANDLE hFile, int seqIndex):
+                 LIMFILEHANDLE hFile, int seq_index):
 
         # Store some arguments for easier access
         self.width = width
         self.height = height
         self.bpc = bpc
         self.n_components = n_components
+        self.seq_index = seq_index
 
         # Load the data into the LIMPicture structure
-        cdef LIMPICTURE temp
-        if _Lim_InitPicture(&temp, width, height, bpc, n_components) == 0:
+        cdef LIMPICTURE temp_pic
+        if _Lim_InitPicture(&temp_pic, width, height, bpc, n_components) == 0:
             raise Exception("Could not initialize picture!")
 
         # Load the image and store it
-        load_image_data(hFile, &temp, seqIndex)
-        self.picture = temp
+        cdef LIMLOCALMETADATA temp_metadata
+        load_image_data(hFile, &temp_pic, &temp_metadata, seq_index)
+        self.picture = temp_pic
+        self.metadata = temp_metadata
 
     def __dealloc__(self):
         """
@@ -43,6 +48,21 @@ cdef class Picture:
         to destroy also the LIM picture it refers to.
         """
         _Lim_DestroyPicture(&self.picture)
+
+    def __getitem__(self, comp):
+        """
+        Return image at given component number as numpy array (memoryview).
+
+        Same as Picture.image(comp)
+
+        @see image()
+
+        :param comp: component number
+        :type comp: int
+        :return: image
+        :rtype: np.array (memoryview)
+        """
+        return self.image(comp)
 
     def image(self, comp):
         """
@@ -54,6 +74,10 @@ cdef class Picture:
         """
 
         cdef np.ndarray np_arr
+
+        if comp >= self.n_components:
+            raise Exception("The Picture only has " +
+                            str(self.n_components) + " components!")
 
         # Create a memory view to the data
         if self.bpc == 8:
@@ -70,9 +94,39 @@ cdef class Picture:
 
         return np_arr
 
+    def __str__(self):
+        """
+        Display summary of the Picture.
+        :return:
+        :rtype:
+        """
+
+        # Get the geometry
+        metadata = LIMLOCALMETADATA_to_dict(&self.metadata)
+
+        str = "Picture:\n" \
+              "   XY = (%dx%d), sequence index = %d, components = %d\n" \
+              "   Metadata:\n" \
+              "      X pos    : %f\n" \
+              "      Y pos    : %f\n" \
+              "      Z pos    : %f\n" \
+              "      Time (ms): %f\n" % \
+              (self.width, self.height, self.seq_index, self.n_components,
+               metadata['dXPos'], metadata['dYPos'], metadata['dZPos'],
+               metadata['dTimeMSec'])
+
+        return str
+
+    def __repr__(self):
+        return self.__str__()
+
     @property
     def n_components(self):
         return self.n_components
+
+    @property
+    def metadata(self):
+        return LIMLOCALMETADATA_to_dict(&self.metadata)
 
 
 cdef class nd2Reader:
@@ -338,21 +392,30 @@ cdef class nd2Reader:
 
         return self.Pictures[seqIndex]
 
-    def get_coords(self):
+    def map_index_to_subscripts(self, seq_index):
 
         # Make sure the experiment has been loaded
         self.get_experiment()
 
         cdef LIMUINT[LIMMAXEXPERIMENTLEVEL] pExpCoords;
-        parse_coords(&self.exp, pExpCoords)
+        subs = index_to_subscripts(seq_index, &self.exp, pExpCoords)
 
-        # Return the coordinates as list
-        coords = int_pointer_to_list(pExpCoords)
+        return subs
 
-        return coords
+    def get_stage_coordinates(self, iUseAlignment = 0):
 
-    def get_stage_coordinates(self):
-        raise Exception("Implement me!")
+        # Make sure the file is open
+        if not self.is_open():
+            return []
+
+        # Make sure the attributes have ben read
+        self.get_attributes()
+
+        stage_coords = parse_stage_coords(self.file_handle,
+                                          self.attr,
+                                          iUseAlignment)
+
+        return stage_coords
 
 # Clean (own) memory when finalizing the array
 cdef class _finalizer:

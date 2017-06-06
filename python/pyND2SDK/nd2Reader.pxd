@@ -24,6 +24,7 @@ cdef extern from "nd2Reader_helper.h":
     void dump_LIMEXPERIMENTLEVEL_struct(LIMEXPERIMENTLEVEL *s)
     void dump_LIMEXPERIMENT_struct(LIMEXPERIMENT *s)
     void dump_LIMPICTURE_struct(LIMPICTURE *s)
+    void dump_LIMLOCALMETADATA_struct(const LIMLOCALMETADATA *p)
 
     # Structure to  dictionary functions
     object LIMATTRIBUTES_to_dict(LIMATTRIBUTES *s)
@@ -32,18 +33,17 @@ cdef extern from "nd2Reader_helper.h":
     object LIMPICTUREPLANE_DESC_to_dict(LIMPICTUREPLANE_DESC *s)
     object LIMEXPERIMENTLEVEL_to_dict(LIMEXPERIMENTLEVEL * s)
     object LIMEXPERIMENT_to_dict(LIMEXPERIMENT * s)
-
-    # Other conversion functions
-    object int_pointer_to_list(unsigned int *p)
+    object LIMLOCALMETADATA_to_dict(const LIMLOCALMETADATA * s)
 
     # Data functions
     float * get_float_pointer_to_picture_data(LIMPICTURE * p)
     uint16_t * get_uint16_pointer_to_picture_data(LIMPICTURE * p)
     uint8_t * get_uint8_pointer_to_picture_data(LIMPICTURE * p)
-    void load_image_data(int hFile, LIMPICTURE *p, int uiSeqIndex)
+    void load_image_data(int hFile, LIMPICTURE *p, LIMLOCALMETADATA *m, int uiSeqIndex)
 
     # Metadata functions
-    void parse_coords(LIMEXPERIMENT *exp, LIMUINT *coords)
+    object index_to_subscripts(LIMUINT seq_index, LIMEXPERIMENT *exp, LIMUINT *coords);
+    object parse_stage_coords(LIMFILEHANDLE f, LIMATTRIBUTES a, int iUseAlignment);
 
 cdef extern from "nd2ReadSDK.h":
 
@@ -189,3 +189,14 @@ cdef extern from "nd2ReadSDK.h":
                                       double *pdYPos,
                                       double *pdZPos,
                                       LIMINT iUseAlignment)
+
+    # Read the alignment points
+    LIMRESULT _Lim_GetAlignmentPoints \
+            "Lim_GetAlignmentPoints"(LIMFILEHANDLE hFile,
+                                     LIMUINT* puiPosCount,
+                                     LIMUINT* puiSeqIdx,
+                                     LIMUINT* puiXPos,
+                                     LIMUINT* puiYPos,
+                                     double *pdXPos,
+                                     double *pdYPos)
+

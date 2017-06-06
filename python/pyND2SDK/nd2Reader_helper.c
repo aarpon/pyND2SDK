@@ -104,6 +104,14 @@ void dump_LIMPICTURE_struct(const LIMPICTURE *s)
     printf("&pImageData         = %p\n", (void *)s->pImageData);
 }
 
+void dump_LIMLOCALMETADATA_struct(const LIMLOCALMETADATA *s)
+{
+    printf("dTimeMSec           = %f\n", (double)s->dTimeMSec);
+    printf("dXPos               = %f\n", (double)s->dXPos);
+    printf("dYPos               = %f\n", (double)s->dYPos);
+    printf("dZPos               = %f\n", (double)s->dZPos);
+}
+
 /* -----------------------------------------------------------------------------
 
     Conversion functions: map LIM structures to python dictionaries;
@@ -254,7 +262,7 @@ PyObject* LIMPICTUREPLANE_DESC_to_dict(const LIMPICTUREPLANE_DESC * s)
     PyDict_SetItemString(d, "wszOCName",
             PyUnicode_FromWideChar((LIMWSTR)s->wszOCName, -1));
     PyDict_SetItemString(d, "dEmissionWL",
-            PyLong_FromDouble((double)s->dEmissionWL));
+            PyFloat_FromDouble((double)s->dEmissionWL));
 
     // Return
     return d;
@@ -297,7 +305,7 @@ PyObject* LIMEXPERIMENTLEVEL_to_dict(const LIMEXPERIMENTLEVEL * s)
     PyDict_SetItemString(d, "uiLoopSize",
             PyLong_FromLong((long)s->uiLoopSize));
     PyDict_SetItemString(d, "dInterval",
-            PyLong_FromDouble((double)s->dInterval));
+            PyFloat_FromDouble((double)s->dInterval));
 
     // Return
     return d;
@@ -332,18 +340,23 @@ PyObject* LIMEXPERIMENT_to_dict(const LIMEXPERIMENT * s)
     return d;
 }
 
-PyObject* int_pointer_to_list(LIMUINT *p)
+PyObject* LIMLOCALMETADATA_to_dict(const LIMLOCALMETADATA * s)
 {
-    // Create a list to add the LIMEXPERIMENTLEVEL objects.
-    PyObject* l = PyList_New((Py_ssize_t) LIMMAXEXPERIMENTLEVEL);
+    // Create a dictionary
+    PyObject* d = PyDict_New();
 
-    for (int i = 0; i < LIMMAXEXPERIMENTLEVEL; i++)
-    {
-        // Store the number into the list
-        PyList_SetItem(l, i, PyLong_FromLong((long) *(p + i)));
-    }
+    // Add values
+    PyDict_SetItemString(d, "dTimeMSec",
+            PyFloat_FromDouble((double)s->dTimeMSec));
+    PyDict_SetItemString(d, "dXPos",
+            PyFloat_FromDouble((double)s->dXPos));
+    PyDict_SetItemString(d, "dYPos",
+            PyFloat_FromDouble((double)s->dYPos));
+    PyDict_SetItemString(d, "dZPos",
+            PyFloat_FromDouble((double)s->dZPos));
 
-    return l;
+    // Return
+    return d;
 }
 
 /* -----------------------------------------------------------------------------
@@ -369,9 +382,8 @@ uint8_t *get_uint8_pointer_to_picture_data(const LIMPICTURE * p)
     return (uint8_t *)p->pImageData;
 }
 
-void load_image_data(int hFile, LIMPICTURE *picture, unsigned int uiSeqIndex)
+void load_image_data(LIMFILEHANDLE hFile, LIMPICTURE *picture, LIMLOCALMETADATA *meta, unsigned int uiSeqIndex)
 {
-    LIMLOCALMETADATA meta;
     LIMATTRIBUTES attr;
 
     // Read the attributes
@@ -381,7 +393,7 @@ void load_image_data(int hFile, LIMPICTURE *picture, unsigned int uiSeqIndex)
     Lim_InitPicture(picture, attr.uiWidth, attr.uiHeight, attr.uiBpcSignificant, attr.uiComp);
 
     // Load the picture into the prepared buffer
-    Lim_FileGetImageData(hFile, uiSeqIndex, picture, &meta);
+    Lim_FileGetImageData(hFile, uiSeqIndex, picture, meta);
 
 }
 
@@ -391,32 +403,60 @@ void load_image_data(int hFile, LIMPICTURE *picture, unsigned int uiSeqIndex)
 
 ----------------------------------------------------------------------------- */
 
-void parse_coords(LIMEXPERIMENT *exp, LIMUINT *coords)
+PyObject* index_to_subscripts(LIMUINT seq_index, LIMEXPERIMENT *exp, LIMUINT *coords)
 {
-    /**
-        How this is supposed to work and be used is still unclear to me.
-    */
+    // Convert the linear index to a point in the experiment coordinate system
+    Lim_GetCoordsFromSeqIndex(exp, seq_index, coords);
 
-    // Set coords for all experiment levels to 0
-   for(unsigned int i=0; i < LIMMAXEXPERIMENTLEVEL; i++)
-   {
-       *(coords + i) = 0;
-   }
+    // Now return the coordinate as a dictionary
+    PyObject* d = PyDict_New();
 
-   LIMEXPERIMENTLEVEL *pExpLevel = NULL;
+    // Add values
+    PyDict_SetItemString(d, "time",
+            PyLong_FromLong((long)coords[0]));
+    PyDict_SetItemString(d, "point",
+            PyLong_FromLong((long)coords[1]));
+    PyDict_SetItemString(d, "plane",
+            PyLong_FromLong((long)coords[2]));
+    PyDict_SetItemString(d, "other",
+            PyLong_FromLong((long)coords[3]));
 
-   for(unsigned int i=0; i < exp->uiLevelCount; i++)
-   {
-       coords[exp->pAllocatedLevels[i].uiExpType] = exp->pAllocatedLevels[i].uiLoopSize/2;
-   }
+    // Return
+    return d;
+}
 
-   LIMUINT uiIndex = Lim_GetSeqIndexFromCoords(exp, coords);
+PyObject* parse_stage_coords(LIMFILEHANDLE f_handle, LIMATTRIBUTES attr,
+    int iUseAlignment)
+{
+    LIMUINT uiPosCount = attr.uiSequenceCount;
 
-   for(unsigned int i=0; i < exp->uiLevelCount; i++)
-   {
-       coords[exp->pAllocatedLevels[i].uiExpType] = 0;
-   }
+    // Packages them into 2D list
+    PyObject* l = PyList_New((Py_ssize_t) uiPosCount);
 
-   Lim_GetCoordsFromSeqIndex(exp, uiIndex, coords);
+    for (int i = 0; i < (Py_ssize_t) uiPosCount; i++)
+    {
+        // Get the x, y, and z coordinates of current position
+        PyObject* c = PyList_New((Py_ssize_t) 3);
 
+        // The stage coordinate is relative to the center of the image
+        LIMUINT puiXPos = attr.uiWidth / 2;
+        LIMUINT puiYPos = attr.uiHeight / 2;
+        double pdXPos = 0.0;
+        double pdYPos = 0.0;
+        double pdZPos = 0.0;
+
+        // Retrieve the coordinates (one at a time)
+        Lim_GetStageCoordinates(f_handle, 1,
+            &i, &puiXPos, &puiYPos, &pdXPos,
+            &pdYPos, &pdZPos, iUseAlignment);
+
+        PyList_SetItem(c, 0, PyFloat_FromDouble(pdXPos));
+        PyList_SetItem(c, 1, PyFloat_FromDouble(pdYPos));
+        PyList_SetItem(c, 2, PyFloat_FromDouble(pdZPos));
+
+        // Store it
+        PyList_SetItem(l, i, c);
+    }
+
+    return l;
 }

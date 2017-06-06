@@ -8,7 +8,7 @@ if __name__ == "__main__":
 
     currDir = os.path.dirname(os.path.realpath(__file__).replace("\\", "/"))
 
-    filename = os.path.join(currDir, "tests/files/file03.nd2")
+    filename = os.path.join(currDir, "tests/files/file01.nd2")
 
     print(filename)
 
@@ -39,16 +39,18 @@ if __name__ == "__main__":
     pprint(exp)
 
     # Get the coordinates
-    coords = r.get_coords()
+    coords = r.get_stage_coordinates()
     pprint(coords)
 
     # Create an empty picture with the correct size
-    sequence = r.load(0)
+    picture = r.load(0)
 
-    for i in range(sequence.n_components):
+    for i in range(picture.n_components):
 
         print("\nImage %d (5x5 extract):\n" % i)
-        img = sequence.image(i)
+        img = picture[i]
+        metadata = picture.metadata
+        pprint(metadata)
 
         print(img[0:5, 0:5])
 

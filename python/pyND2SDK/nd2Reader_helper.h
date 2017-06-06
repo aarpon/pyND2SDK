@@ -19,7 +19,7 @@ void dump_LIMPICTUREPLANE_DESC_struct(const LIMPICTUREPLANE_DESC *s);
 void dump_LIMEXPERIMENTLEVEL_struct(const LIMEXPERIMENTLEVEL *s);
 void dump_LIMEXPERIMENT_struct(const LIMEXPERIMENT *s);
 void dump_LIMPICTURE_struct(const LIMPICTURE *p);
-
+void dump_LIMLOCALMETADATA_struct(const LIMLOCALMETADATA *p);
 
 /* -----------------------------------------------------------------------------
 
@@ -34,8 +34,7 @@ PyObject* LIMTEXTINFO_to_dict(const LIMTEXTINFO * s);
 PyObject* LIMPICTUREPLANE_DESC_to_dict(const LIMPICTUREPLANE_DESC * s);
 PyObject* LIMEXPERIMENTLEVEL_to_dict(const LIMEXPERIMENTLEVEL * s);
 PyObject* LIMEXPERIMENT_to_dict(const LIMEXPERIMENT * s);
-
-PyObject* int_pointer_to_list(LIMUINT *p);
+PyObject* LIMLOCALMETADATA_to_dict(const LIMLOCALMETADATA * s);
 
 
 /* -----------------------------------------------------------------------------
@@ -45,9 +44,9 @@ PyObject* int_pointer_to_list(LIMUINT *p);
 ----------------------------------------------------------------------------- */
 
 float *get_float_pointer_to_picture_data(const LIMPICTURE * p);
-uint16_t * get_uint16_pointer_to_picture_data(const LIMPICTURE * p);
-uint8_t * get_uint8_pointer_to_picture_data(const LIMPICTURE * p);
-void load_image_data(int hFile, LIMPICTURE *p, unsigned int uiSeqIndex);
+uint16_t *get_uint16_pointer_to_picture_data(const LIMPICTURE * p);
+uint8_t *get_uint8_pointer_to_picture_data(const LIMPICTURE * p);
+void load_image_data(LIMFILEHANDLE hFile, LIMPICTURE *p, LIMLOCALMETADATA *m, unsigned int uiSeqIndex);
 
 /* -----------------------------------------------------------------------------
 
@@ -55,6 +54,7 @@ void load_image_data(int hFile, LIMPICTURE *p, unsigned int uiSeqIndex);
 
 ----------------------------------------------------------------------------- */
 
-void parse_coords(LIMEXPERIMENT *exp, LIMUINT *coords);
+PyObject* index_to_subscripts(LIMUINT seq_index, LIMEXPERIMENT *exp, LIMUINT *coords);
+PyObject* parse_stage_coords(LIMFILEHANDLE f_handle, LIMATTRIBUTES attr, int iUseAlignment);
 
 #endif
