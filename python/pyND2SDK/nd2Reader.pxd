@@ -72,8 +72,11 @@ cdef extern from "nd2ReadSDK.h":
     # Unsigned integer
     ctypedef unsigned int LIMUINT
 
-    # Signed indeger
+    # Signed integer
     ctypedef int LIMINT
+
+    # "Bool"
+    ctypedef int LIMBOOL
 
     # Wide char
     ctypedef wchar_t LIMWCHAR "wchar_t"
@@ -86,10 +89,6 @@ cdef extern from "nd2ReadSDK.h":
 
     # Size (unsigned)
     ctypedef size_t LIMSIZE "size_t"
-
-    # Picture plane description
-    ctypedef struct LIMPICTUREPLANE_DESC:
-        pass
 
     # Struct LIMATTRIBUTES
     ctypedef struct LIMATTRIBUTES:
@@ -191,7 +190,37 @@ cdef extern from "nd2ReadSDK.h":
                                       double *pdZPos,
                                       LIMINT iUseAlignment)
 
-    # Read the alignment points
+
+    # Get the Z stack home
+    LIMINT _Lim_GetZStackHome \
+            "Lim_GetZStackHome"(LIMFILEHANDLE hFile)
+
+
+    # @TODO: Implement python code
+    # Get recorded integer data
+    LIMRESULT _Lim_GetRecordedDataInt \
+                    "Lim_GetRecordedDataInt"(LIMFILEHANDLE hFile,
+                                             LIMCWSTR wszName,
+                                             LIMINT uiSeqIndex,
+                                             LIMINT *piData)
+
+    # @TODO: Implement python code
+    # Get recorded double data
+    LIMRESULT _Lim_GetRecordedDataDouble \
+                    "Lim_GetRecordedDataDouble"(LIMFILEHANDLE hFile,
+                                                LIMCWSTR wszName,
+                                                LIMINT uiSeqIndex,
+                                                double* pdData)
+
+    # @TODO: Implement python code
+    # Get recorded string data
+    LIMRESULT _Lim_GetRecordedDataString \
+                    "Lim_GetRecordedDataString"(LIMFILEHANDLE hFile,
+                                                LIMCWSTR wszName,
+                                                LIMINT uiSeqIndex,
+                                                LIMWSTR wszData);
+    # @TODO: Implement python code
+    #  Read the alignment points
     LIMRESULT _Lim_GetAlignmentPoints \
             "Lim_GetAlignmentPoints"(LIMFILEHANDLE hFile,
                                      LIMUINT* puiPosCount,

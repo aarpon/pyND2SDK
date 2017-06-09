@@ -48,8 +48,18 @@ if __name__ == "__main__":
     coords = r.get_stage_coordinates()
     pprint(coords)
 
-    # Create an empty picture with the correct size
-    picture = r.load(0)
+    # Get the Z stack home
+    pprint(r.get_z_stack_home())
+
+    # Load the first image by index
+    picture = r.load_by_index(0)
+
+    # Load the first index by subscripts
+    picture2 = r.load(0, 0, 0)
+
+    A = picture[0]
+    B = picture2[0]
+    print(A[10:15, 10:15] == B[10:15, 10:15])
 
     for i in range(picture.n_components):
 

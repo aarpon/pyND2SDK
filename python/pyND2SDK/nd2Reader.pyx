@@ -47,6 +47,7 @@ cdef class Picture:
         When the Picture object is destroyed, we make sure
         to destroy also the LIM picture it refers to.
         """
+        print("Deleting picture for sequence " + str(self.seq_index) + ".\n")
         _Lim_DestroyPicture(&self.picture)
 
     def __getitem__(self, comp):
@@ -148,7 +149,7 @@ cdef class nd2Reader:
         self.file_handle = 0
         self.Pictures = {}
 
-    def __del__(self):
+    def __dealloc__(self):
         # Close the file, if open
         if self.is_open():
             self.close()
@@ -169,6 +170,8 @@ cdef class nd2Reader:
 
         # Open the file and return the handle
         self.file_handle = _Lim_FileOpenForRead(w_filename)
+        if self.file_handle == 0:
+            raise Exception("Could not open file " + filename + "!")
 
         # Load the experiment
         if _Lim_FileGetExperiment(self.file_handle, &self.exp) != LIM_OK:
@@ -215,7 +218,7 @@ cdef class nd2Reader:
         """
         Returns the geometry of the dataset.
 
-        [x, y, z, c, t, m, o, b, s]
+        [x, y, z, c, t, m, o, g, b, s]
 
             x: width
             y: height
@@ -224,6 +227,7 @@ cdef class nd2Reader:
             t: number of time points
             m: number of positions
             o: other
+            g: total number of sequences
             b: bit depth
             s: significant bits
 
@@ -245,6 +249,7 @@ cdef class nd2Reader:
         t = 1 # Number of timepoints
         m = 1 # Number of positions
         o = 0 # Other (?)
+        g = 0 # Total number of sequences
         b = 0 # Bit depth
         s = 0 # Significant bits
 
@@ -261,6 +266,7 @@ cdef class nd2Reader:
             else:
                 raise Exception("Unexpected experiment level!")
 
+        g = attr['uiSequenceCount']
         x = attr['uiWidth']
         y = attr['uiHeight']
         c = attr['uiComp']
@@ -284,6 +290,7 @@ cdef class nd2Reader:
 
         # Close the file
         if self.is_open():
+            print("Closing file " + self.file_name + ".\n")
             self.file_handle = _Lim_FileClose(self.file_handle)
 
         return self.file_handle
@@ -299,6 +306,9 @@ cdef class nd2Reader:
         :rtype: dict
         """
 
+        if not self.is_open():
+            return {}
+
         # Convert the attribute structure to dict
         return LIMATTRIBUTES_to_dict(&self.attr)
 
@@ -313,6 +323,9 @@ cdef class nd2Reader:
         :rtype: dict
         """
 
+        if not self.is_open():
+            return {}
+
         # Convert metadata structure to dict
         return LIMMETADATA_DESC_to_dict(&self.meta)
 
@@ -326,6 +339,9 @@ cdef class nd2Reader:
         :return: file text info
         :rtype: dict
         """
+
+        if not self.is_open():
+            return {}
 
         if _Lim_FileGetTextinfo(self.file_handle, &self.info) != LIM_OK:
             raise Exception("Could not retrieve the text info!")
@@ -343,12 +359,39 @@ cdef class nd2Reader:
         :return: experiment
         :rtype: dict
         """
+        if not self.is_open():
+            return {}
 
         # Convert the experiment structure to dict
         return LIMEXPERIMENT_to_dict(&self.exp)
 
+    def get_z_stack_home(self):
+        """
+        Return the Z stack home.
+        :return: Z stack home
+        :rtype: int
+        """
+        cdef LIMINT home
+
+        if not self.is_open():
+            return None
+
+        home = None
+
+        # Get the experiment as a python dictionary
+        exp = self.get_experiment()
+
+        # Retrieve the home value if we have a z stack only
+        for i in range(exp['uiLevelCount']):
+            if exp['pAllocatedLevels'][i]['uiExpType'] == LIMLOOP_Z:
+                home = _Lim_GetZStackHome(self.file_handle)
+                if home < 0:
+                    home = 0
+
+        return home
+
     # Data access
-    def load(self, LIMUINT index):
+    def load(self, LIMUINT time, LIMUINT point, LIMUINT plane, LIMUINT other = 0):
         """Loads, stores a return the picture.
 
         :param index: index of the sequence (image) to load
@@ -358,11 +401,37 @@ cdef class nd2Reader:
         :rtype: PyND2SDK.Picture
         """
 
-        if self.file_handle is None:
-            return False
+        if not self.is_open():
+            return None
+
+        # Map the subs to a linear index
+        index = self.map_subscripts_to_index(time, point, plane, other)
+
+        # Load the Picture
+        p = self.load_by_index(index)
+
+        # Return the Picture
+        return p
+
+    # Data access
+    def load_by_index(self, LIMUINT index):
+        """Loads, stores a return the picture.
+
+        :param index: index of the sequence (image) to load
+        :type height: unsigned int
+
+        :return: Picture object
+        :rtype: PyND2SDK.Picture
+        """
+
+        if not self.is_open():
+            return None
 
         # Get the attributes
         attr = self.get_attributes()
+
+        if index >= attr['uiSequenceCount']:
+            raise Exception("The requested sequence does not exist in the file!")
 
         # Create a new Picture objects that loads the requested image
         p = Picture(attr['uiWidth'],
@@ -387,23 +456,45 @@ cdef class nd2Reader:
         :return: picture
         :rtype: Picture
         """
+
+        if not self.is_open():
+            return None
+
         if seqIndex not in self.Pictures:
             self.load(seqIndex)
 
         return self.Pictures[seqIndex]
 
     def map_index_to_subscripts(self, seq_index):
-
-        # Make sure the experiment has been loaded
-        self.get_experiment()
+        """
+        Map linear index to subscripts.
+        :param seq_index:
+        :type seq_index:
+        :return:
+        :rtype:
+        """
+        if not self.is_open():
+            return None
 
         cdef LIMUINT[LIMMAXEXPERIMENTLEVEL] pExpCoords;
         return index_to_subscripts(seq_index, &self.exp, pExpCoords)
 
     def map_subscripts_to_index(self, time, point, plane, other = 0):
-
-        # Make sure the experiment has been loaded
-        self.get_experiment()
+        """
+        Map subscripts to linear index.
+        :param time:
+        :type time:
+        :param point:
+        :type point:
+        :param plane:
+        :type plane:
+        :param other:
+        :type other:
+        :return:
+        :rtype:
+        """
+        if not self.is_open():
+            return {}
 
         cdef LIMUINT[LIMMAXEXPERIMENTLEVEL] pExpCoords;
         pExpCoords[0] = time
@@ -414,7 +505,13 @@ cdef class nd2Reader:
         return subscripts_to_index(&self.exp, pExpCoords)
 
     def get_stage_coordinates(self, use_alignment=0):
-
+        """
+        Get stage coordinates.
+        :param use_alignment:
+        :type use_alignment:
+        :return:
+        :rtype:
+        """
         # Make sure the file is open
         if not self.is_open():
             return []
