@@ -66,5 +66,6 @@ PyObject* parse_stage_coords(LIMFILEHANDLE f_handle, LIMATTRIBUTES attr, int iUs
 PyObject* get_recorded_data_int(LIMFILEHANDLE f_handle, LIMATTRIBUTES attr);
 PyObject* get_recorded_data_double(LIMFILEHANDLE f_handle, LIMATTRIBUTES attr);
 PyObject* get_recorded_data_string(LIMFILEHANDLE f_handle, LIMATTRIBUTES attr);
+PyObject* get_custom_data(LIMFILEHANDLE f_handle);
 
 #endif

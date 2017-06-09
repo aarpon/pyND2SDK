@@ -16,6 +16,8 @@
 
 ## Lim_GetRecordedData{Int|String}
 
-* What are the strings?
+* What are the strings? What is returned?
 
+## Lim_GetCustomDataDouble
 
+* How to use? 

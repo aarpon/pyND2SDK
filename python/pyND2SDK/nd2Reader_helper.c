@@ -494,8 +494,10 @@ PyObject* get_recorded_data_double(LIMFILEHANDLE f_handle, LIMATTRIBUTES attr)
     printf("Processing %d sequences.\n", uiPosCount);
 
     // Load Recorded Data
-    const LIMWCHAR *doubleValues[] = {L"X", L"Y", L"Z", L"Z1", L"Z2", L"HEATSTAGE_T", L"ADC_VOLTAGE_0"};
-    const char *key_names[] = {"X", "Y", "Z", "Z1", "Z2", "HEATSTAGE_T", "ADC_VOLTAGE_0"};
+    const LIMWCHAR *doubleValues[] = {L"X", L"Y", L"Z", L"Z1", L"Z2",
+                                      L"HEATSTAGE_T", L"ADC_VOLTAGE_0"};
+    const char *key_names[] = {"X", "Y", "Z", "Z1", "Z2", "HEATSTAGE_T",
+                               "ADC_VOLTAGE_0"};
 
     // Initialize a dictionary
     PyObject* d = PyDict_New();
@@ -546,4 +548,74 @@ PyObject* get_recorded_data_string(LIMFILEHANDLE f_handle, LIMATTRIBUTES attr)
 
     // Return the dictionary
     return d;
+}
+
+PyObject* get_custom_data(LIMFILEHANDLE f_handle)
+{
+    LIMUINT count = Lim_GetCustomDataCount(f_handle);
+    LIMWCHAR wszName[256], wszDescription[256], wszValue[256];
+    LIMINT iType = 0, iFlags = 0, iLength = 256;
+
+    const LIMWCHAR *types[] = {L"Label", L"Number", L"Text",
+                               L"Selection", L"Long Text", L"Date"};
+
+    // Initialize a list
+    PyObject* l = PyList_New((Py_ssize_t) count);
+
+    for(LIMUINT i = 0; i < count; i++)
+    {
+        // Initialize a dictionary
+        PyObject* d = PyDict_New();
+
+        if (Lim_GetCustomDataInfo(f_handle, i, wszName, wszDescription, &iType, &iFlags) == LIM_OK)
+        {
+            // Name
+            PyDict_SetItemString(d, "Name",
+                PyUnicode_FromWideChar(wszName, -1));
+
+            // Type
+            if (iType >= 1 && iType <=6)
+            {
+                PyDict_SetItemString(d, "Type",
+                    PyUnicode_FromWideChar(types[iType - 1], -1));
+            }
+            else
+            {
+                PyDict_SetItemString(d, "Type",
+                    PyUnicode_FromWideChar(L"Unknown", -1));
+            }
+
+            // Description
+            PyDict_SetItemString(d, "Description",
+                PyUnicode_FromWideChar(wszDescription, -1));
+
+            // Mandatory
+            if (iFlags & 2)
+            {
+                PyDict_SetItemString(d, "Mandatory",
+                    PyUnicode_FromWideChar(L"Yes", -1));
+            }
+            else
+            {
+                PyDict_SetItemString(d, "Mandatory",
+                    PyUnicode_FromWideChar(L"No", -1));
+            }
+
+            // Value
+            iLength = 256;
+            if (Lim_GetCustomDataString(f_handle, i, wszValue, &iLength) == LIM_OK)
+            {
+                PyDict_SetItemString(d, "Value",
+                    PyUnicode_FromWideChar(wszValue, -1));
+            }
+
+        }
+
+        // Add the dictionary to the list (it could potentially be empty)
+        PyList_SetItem(l, i, d);
+    }
+
+    // Return the list
+    return l;
+
 }

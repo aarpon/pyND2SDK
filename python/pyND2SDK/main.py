@@ -20,7 +20,7 @@ if __name__ == "__main__":
         print('Could not open ND2 file!')
         exit(1)
 
-    print(r.get_geometry())
+    pprint(r.get_geometry())
 
     # Retrieve the attributes
     attr = r.get_attributes()
@@ -39,8 +39,16 @@ if __name__ == "__main__":
     pprint(exp)
 
     # Get recorded data
-    data = r.get_recorded_data();
+    data = r.get_recorded_data()
     pprint(data)
+
+    # Get custom data
+    c_data = r.get_custom_data()
+    pprint(c_data)
+
+    # Custom data count
+    count = r.get_custom_data_count()
+    pprint(count)
 
     # Test index to subx
     subs = r.map_index_to_subscripts(0)

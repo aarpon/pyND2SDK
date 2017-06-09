@@ -48,6 +48,7 @@ cdef extern from "nd2Reader_helper.h":
     object get_recorded_data_int(LIMFILEHANDLE f, LIMATTRIBUTES a)
     object get_recorded_data_double(LIMFILEHANDLE f, LIMATTRIBUTES a)
     object get_recorded_data_string(LIMFILEHANDLE f, LIMATTRIBUTES a)
+    object get_custom_data(LIMFILEHANDLE f_handle);
 
 cdef extern from "nd2ReadSDK.h":
 
@@ -62,9 +63,6 @@ cdef extern from "nd2ReadSDK.h":
     enum: LIMLOOP_MULTIPOINT
     enum: LIMLOOP_Z
     enum: LIMLOOP_OTHER
-    enum: LIMSTRETCH_QUICK
-    enum: LIMSTRETCH_SPLINES
-    enum: LIMSTRETCH_LINEAR
 
     # File handle
     ctypedef int LIMFILEHANDLE
@@ -199,15 +197,14 @@ cdef extern from "nd2ReadSDK.h":
             "Lim_GetZStackHome"(LIMFILEHANDLE hFile)
 
 
-    # @TODO: Implement python code
     # Get recorded integer data
+    # @TODO This is currently unused. How to use it?
     LIMRESULT _Lim_GetRecordedDataInt \
                     "Lim_GetRecordedDataInt"(LIMFILEHANDLE hFile,
                                              LIMCWSTR wszName,
                                              LIMINT uiSeqIndex,
                                              LIMINT *piData)
 
-    # @TODO: Implement python code
     # Get recorded double data
     LIMRESULT _Lim_GetRecordedDataDouble \
                     "Lim_GetRecordedDataDouble"(LIMFILEHANDLE hFile,
@@ -215,13 +212,41 @@ cdef extern from "nd2ReadSDK.h":
                                                 LIMINT uiSeqIndex,
                                                 double* pdData)
 
-    # @TODO: Implement python code
     # Get recorded string data
+    # @TODO This is currently unused. How to use it?
     LIMRESULT _Lim_GetRecordedDataString \
                     "Lim_GetRecordedDataString"(LIMFILEHANDLE hFile,
                                                 LIMCWSTR wszName,
                                                 LIMINT uiSeqIndex,
-                                                LIMWSTR wszData);
+                                                LIMWSTR wszData)
+
+    # Get count of custom data
+    LIMINT _Lim_GetCustomDataCount \
+                    "Lim_GetCustomDataCount"(LIMFILEHANDLE hFile)
+
+    # Get custom data info
+    LIMRESULT _Lim_GetCustomDataInfo \
+                    "Lim_GetCustomDataInfo"(LIMFILEHANDLE hFile,
+                                            LIMINT uiCustomDataIndex,
+                                            LIMWSTR wszName,
+                                            LIMWSTR wszDescription,
+                                            LIMINT *piType,
+                                            LIMINT *piFlags)
+
+    # Get custom data value as double
+    # @TODO This is currently unused. How to use it?
+    LIMRESULT _Lim_GetCustomDataDouble \
+                    "Lim_GetCustomDataDouble"(LIMFILEHANDLE hFile,
+                                              LIMINT uiCustomDataIndex,
+                                              double* pdData)
+
+    # Get custom data value as string
+    LIMRESULT _Lim_GetCustomDataString \
+                    "Lim_GetCustomDataString"(LIMFILEHANDLE hFile,
+                                              LIMINT uiCustomDataIndex,
+                                              LIMWSTR wszData,
+                                              LIMINT *piLength)
+
     # @TODO: Implement python code
     #  Read the alignment points
     LIMRESULT _Lim_GetAlignmentPoints \

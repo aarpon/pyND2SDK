@@ -329,6 +329,31 @@ cdef class nd2Reader:
         # Convert metadata structure to dict
         return LIMMETADATA_DESC_to_dict(&self.meta)
 
+    def get_custom_data(self):
+        """
+        Return the custom data entities stored.
+        :return: custom data
+        :rtype: dict
+        """
+
+        if not self.is_open():
+            return {}
+
+        return get_custom_data(self.file_handle)
+
+    def get_custom_data_count(self):
+        """
+        Return the number of custom data entities stored.
+        :return: count of custom data
+        :rtype: int
+        """
+
+        if not self.is_open():
+            return 0
+
+        return _Lim_GetCustomDataCount(self.file_handle)
+
+
     def get_text_info(self):
         """
         Retrieves the text info or throws an Exception if it failed.
