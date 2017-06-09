@@ -65,6 +65,40 @@ cdef class Picture:
         """
         return self.image(comp)
 
+    def __repr__(self):
+        return self.__str__()
+
+    def __str__(self):
+        """
+        Display summary of the Picture.
+        :return:
+        :rtype:
+        """
+
+        # Get the geometry
+        metadata = LIMLOCALMETADATA_to_dict(&self.metadata)
+
+        str = "Picture:\n" \
+              "   XY = (%dx%d), sequence index = %d, components = %d\n" \
+              "   Metadata:\n" \
+              "      X pos    : %f\n" \
+              "      Y pos    : %f\n" \
+              "      Z pos    : %f\n" \
+              "      Time (ms): %f\n" % \
+              (self.width, self.height, self.seq_index, self.n_components,
+               metadata['dXPos'], metadata['dYPos'], metadata['dZPos'],
+               metadata['dTimeMSec'])
+
+        return str
+
+    @property
+    def n_components(self):
+        return self.n_components
+
+    @property
+    def metadata(self):
+        return LIMLOCALMETADATA_to_dict(&self.metadata)
+
     def image(self, comp):
         """
         Return image at given component number as numpy array (memoryview).
@@ -95,40 +129,6 @@ cdef class Picture:
 
         return np_arr
 
-    def __str__(self):
-        """
-        Display summary of the Picture.
-        :return:
-        :rtype:
-        """
-
-        # Get the geometry
-        metadata = LIMLOCALMETADATA_to_dict(&self.metadata)
-
-        str = "Picture:\n" \
-              "   XY = (%dx%d), sequence index = %d, components = %d\n" \
-              "   Metadata:\n" \
-              "      X pos    : %f\n" \
-              "      Y pos    : %f\n" \
-              "      Z pos    : %f\n" \
-              "      Time (ms): %f\n" % \
-              (self.width, self.height, self.seq_index, self.n_components,
-               metadata['dXPos'], metadata['dYPos'], metadata['dZPos'],
-               metadata['dTimeMSec'])
-
-        return str
-
-    def __repr__(self):
-        return self.__str__()
-
-    @property
-    def n_components(self):
-        return self.n_components
-
-    @property
-    def metadata(self):
-        return LIMLOCALMETADATA_to_dict(&self.metadata)
-
 
 cdef class nd2Reader:
     """
@@ -154,38 +154,9 @@ cdef class nd2Reader:
         if self.is_open():
             self.close()
 
-    def open(self, filename):
-        """
-        Opens the file 'filename' for reading and returns the file handle.
-        :param filename: with file full path
-        :type filename: unicode string
-        :return: file handle
-        :rtype: int
-        """
 
-        # Make sure the string is unicode
-        self.file_name = unicode(filename)
-        cdef Py_ssize_t length
-        cdef wchar_t *w_filename = PyUnicode_AsWideCharString(self.file_name, &length)
-
-        # Open the file and return the handle
-        self.file_handle = _Lim_FileOpenForRead(w_filename)
-        if self.file_handle == 0:
-            raise Exception("Could not open file " + filename + "!")
-
-        # Load the experiment
-        if _Lim_FileGetExperiment(self.file_handle, &self.exp) != LIM_OK:
-            raise Exception("Could not retrieve the experiment info!")
-
-        # Load the attributes
-        if _Lim_FileGetAttributes(self.file_handle, &self.attr) != LIM_OK:
-            raise Exception("Could not retrieve the file attributes!")
-
-        # Load the metadata
-        if _Lim_FileGetMetadata(self.file_handle, &self.meta) != LIM_OK:
-            raise Exception("Could not retrieve the file metadata!")
-
-        return self.file_handle
+    def __repr__(self):
+        return self.__str__()
 
     def __str__(self):
         """
@@ -211,8 +182,74 @@ cdef class nd2Reader:
 
             return str
 
-    def __repr__(self):
-        return self.__str__()
+    def close(self):
+        """
+        Closes the file.
+        """
+
+        # Close the file
+        if self.is_open():
+            print("Closing file " + self.file_name + ".\n")
+            self.file_handle = _Lim_FileClose(self.file_handle)
+
+        return self.file_handle
+
+    def get_attributes(self):
+        """
+        Retrieves the file attributes or throws an Exception if it failed.
+
+        The attributes are the LIMATTRIBUTES C structure mapped to a
+        python dictionary.
+
+        :return: File attributes.
+        :rtype: dict
+        """
+
+        if not self.is_open():
+            return {}
+
+        # Convert the attribute structure to dict
+        return LIMATTRIBUTES_to_dict(&self.attr)
+
+    def get_custom_data(self):
+        """
+        Return the custom data entities stored.
+        :return: custom data
+        :rtype: dict
+        """
+
+        if not self.is_open():
+            return {}
+
+        return get_custom_data(self.file_handle)
+
+    def get_custom_data_count(self):
+        """
+        Return the number of custom data entities stored.
+        :return: count of custom data
+        :rtype: int
+        """
+
+        if not self.is_open():
+            return 0
+
+        return _Lim_GetCustomDataCount(self.file_handle)
+
+    def get_experiment(self):
+        """
+        Retrieves the experiment info or throws an Exception if it failed.
+
+        The experiment is the LIMEXPERIMENT C structure mapped to a
+        python dictionary.
+
+        :return: experiment
+        :rtype: dict
+        """
+        if not self.is_open():
+            return {}
+
+        # Convert the experiment structure to dict
+        return LIMEXPERIMENT_to_dict(&self.exp)
 
     def get_geometry(self):
         """
@@ -275,43 +312,6 @@ cdef class nd2Reader:
 
         return [x, y, z, c, t, m, o, b, s]
 
-    def is_open(self):
-        """
-        Checks if the file is open.
-        :return: True if the file is open, False otherwise.
-        :rtype: bool
-        """
-        return self.file_handle != 0
-
-    def close(self):
-        """
-        Closes the file.
-        """
-
-        # Close the file
-        if self.is_open():
-            print("Closing file " + self.file_name + ".\n")
-            self.file_handle = _Lim_FileClose(self.file_handle)
-
-        return self.file_handle
-
-    def get_attributes(self):
-        """
-        Retrieves the file attributes or throws an Exception if it failed.
-
-        The attributes are the LIMATTRIBUTES C structure mapped to a
-        python dictionary.
-
-        :return: File attributes.
-        :rtype: dict
-        """
-
-        if not self.is_open():
-            return {}
-
-        # Convert the attribute structure to dict
-        return LIMATTRIBUTES_to_dict(&self.attr)
-
     def get_metadata(self):
         """
         Retrieves the file metadata or throws an Exception if it failed.
@@ -329,66 +329,23 @@ cdef class nd2Reader:
         # Convert metadata structure to dict
         return LIMMETADATA_DESC_to_dict(&self.meta)
 
-    def get_custom_data(self):
+    def get_picture(self, seqIndex):
         """
-        Return the custom data entities stored.
-        :return: custom data
-        :rtype: dict
-        """
-
-        if not self.is_open():
-            return {}
-
-        return get_custom_data(self.file_handle)
-
-    def get_custom_data_count(self):
-        """
-        Return the number of custom data entities stored.
-        :return: count of custom data
-        :rtype: int
+        Return the Picture for given sequence index. The sequence is loaded
+        if necessary.
+        :param seqIndex: index of the sequence to load
+        :type seqIndex: int
+        :return: picture
+        :rtype: Picture
         """
 
         if not self.is_open():
-            return 0
+            return None
 
-        return _Lim_GetCustomDataCount(self.file_handle)
+        if seqIndex not in self.Pictures:
+            self.load(seqIndex)
 
-
-    def get_text_info(self):
-        """
-        Retrieves the text info or throws an Exception if it failed.
-
-        The text info is the LIMTEXTINFO C structure mapped to a
-        python dictionary.
-
-        :return: file text info
-        :rtype: dict
-        """
-
-        if not self.is_open():
-            return {}
-
-        if _Lim_FileGetTextinfo(self.file_handle, &self.info) != LIM_OK:
-            raise Exception("Could not retrieve the text info!")
-
-        # Convert to dict
-        return LIMTEXTINFO_to_dict(&self.info)
-
-    def get_experiment(self):
-        """
-        Retrieves the experiment info or throws an Exception if it failed.
-
-        The experiment is the LIMEXPERIMENT C structure mapped to a
-        python dictionary.
-
-        :return: experiment
-        :rtype: dict
-        """
-        if not self.is_open():
-            return {}
-
-        # Convert the experiment structure to dict
-        return LIMEXPERIMENT_to_dict(&self.exp)
+        return self.Pictures[seqIndex]
 
     def get_recorded_data(self):
         """
@@ -421,6 +378,46 @@ cdef class nd2Reader:
         # Return it
         return d
 
+    def get_stage_coordinates(self, use_alignment=0):
+        """
+        Get stage coordinates.
+        :param use_alignment:
+        :type use_alignment:
+        :return:
+        :rtype:
+        """
+        # Make sure the file is open
+        if not self.is_open():
+            return []
+
+        # Make sure the attributes have ben read
+        self.get_attributes()
+
+        stage_coords = parse_stage_coords(self.file_handle,
+                                          self.attr,
+                                          use_alignment)
+
+        return stage_coords
+
+    def get_text_info(self):
+        """
+        Retrieves the text info or throws an Exception if it failed.
+
+        The text info is the LIMTEXTINFO C structure mapped to a
+        python dictionary.
+
+        :return: file text info
+        :rtype: dict
+        """
+
+        if not self.is_open():
+            return {}
+
+        if _Lim_FileGetTextinfo(self.file_handle, &self.info) != LIM_OK:
+            raise Exception("Could not retrieve the text info!")
+
+        # Convert to dict
+        return LIMTEXTINFO_to_dict(&self.info)
 
     def get_z_stack_home(self):
         """
@@ -445,7 +442,14 @@ cdef class nd2Reader:
 
         return home
 
-    # Data access
+    def is_open(self):
+        """
+        Checks if the file is open.
+        :return: True if the file is open, False otherwise.
+        :rtype: bool
+        """
+        return self.file_handle != 0
+
     def load(self, LIMUINT time, LIMUINT point, LIMUINT plane, LIMUINT other = 0):
         """Loads, stores a return the picture.
 
@@ -468,7 +472,6 @@ cdef class nd2Reader:
         # Return the Picture
         return p
 
-    # Data access
     def load_by_index(self, LIMUINT index):
         """Loads, stores a return the picture.
 
@@ -501,24 +504,6 @@ cdef class nd2Reader:
 
         # Return the Picture
         return p
-
-    def get_picture(self, seqIndex):
-        """
-        Return the Picture for given sequence index. The sequence is loaded
-        if necessary.
-        :param seqIndex: index of the sequence to load
-        :type seqIndex: int
-        :return: picture
-        :rtype: Picture
-        """
-
-        if not self.is_open():
-            return None
-
-        if seqIndex not in self.Pictures:
-            self.load(seqIndex)
-
-        return self.Pictures[seqIndex]
 
     def map_index_to_subscripts(self, seq_index):
         """
@@ -559,26 +544,38 @@ cdef class nd2Reader:
 
         return subscripts_to_index(&self.exp, pExpCoords)
 
-    def get_stage_coordinates(self, use_alignment=0):
+    def open(self, filename):
         """
-        Get stage coordinates.
-        :param use_alignment:
-        :type use_alignment:
-        :return:
-        :rtype:
+        Opens the file 'filename' for reading and returns the file handle.
+        :param filename: with file full path
+        :type filename: unicode string
+        :return: file handle
+        :rtype: int
         """
-        # Make sure the file is open
-        if not self.is_open():
-            return []
 
-        # Make sure the attributes have ben read
-        self.get_attributes()
+        # Make sure the string is unicode
+        self.file_name = unicode(filename)
+        cdef Py_ssize_t length
+        cdef wchar_t *w_filename = PyUnicode_AsWideCharString(self.file_name, &length)
 
-        stage_coords = parse_stage_coords(self.file_handle,
-                                          self.attr,
-                                          use_alignment)
+        # Open the file and return the handle
+        self.file_handle = _Lim_FileOpenForRead(w_filename)
+        if self.file_handle == 0:
+            raise Exception("Could not open file " + filename + "!")
 
-        return stage_coords
+        # Load the experiment
+        if _Lim_FileGetExperiment(self.file_handle, &self.exp) != LIM_OK:
+            raise Exception("Could not retrieve the experiment info!")
+
+        # Load the attributes
+        if _Lim_FileGetAttributes(self.file_handle, &self.attr) != LIM_OK:
+            raise Exception("Could not retrieve the file attributes!")
+
+        # Load the metadata
+        if _Lim_FileGetMetadata(self.file_handle, &self.meta) != LIM_OK:
+            raise Exception("Could not retrieve the file metadata!")
+
+        return self.file_handle
 
 # Clean (own) memory when finalizing the array
 cdef class _finalizer:
