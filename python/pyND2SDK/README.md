@@ -9,3 +9,13 @@
 * `dObjectiveMag: -1` What does the NIS Reader report?
 * `dPinholeRadius = -9.25596e+61` What does the NIS Reader report?
 * `dProjectiveMag = -1`  What does the NIS Reader report?
+
+## LIMPICTUREPLANE_DESC
+
+* How to retrieve it? How to use it?
+
+## Lim_GetRecordedData{Int|String}
+
+* What are the strings?
+
+

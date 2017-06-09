@@ -45,6 +45,9 @@ cdef extern from "nd2Reader_helper.h":
     object index_to_subscripts(LIMUINT seq_index, LIMEXPERIMENT *exp, LIMUINT *coords)
     LIMUINT subscripts_to_index(LIMEXPERIMENT *exp, LIMUINT *coords)
     object parse_stage_coords(LIMFILEHANDLE f, LIMATTRIBUTES a, int iUseAlignment)
+    object get_recorded_data_int(LIMFILEHANDLE f, LIMATTRIBUTES a)
+    object get_recorded_data_double(LIMFILEHANDLE f, LIMATTRIBUTES a)
+    object get_recorded_data_string(LIMFILEHANDLE f, LIMATTRIBUTES a)
 
 cdef extern from "nd2ReadSDK.h":
 

@@ -5,7 +5,11 @@
 
     Debug functions: dump the LIM structures for control
 
+    These functions are only compiled if a DEBUG build is asked.
+
 ----------------------------------------------------------------------------- */
+
+#ifdef DEBUG
 
 void dump_LIMATTRIBUTES_struct(const LIMATTRIBUTES *s)
 {
@@ -111,6 +115,8 @@ void dump_LIMLOCALMETADATA_struct(const LIMLOCALMETADATA *s)
     printf("dYPos               = %f\n", (double)s->dYPos);
     printf("dZPos               = %f\n", (double)s->dZPos);
 }
+
+#endif // DEBUG
 
 /* -----------------------------------------------------------------------------
 
@@ -465,4 +471,79 @@ PyObject* parse_stage_coords(LIMFILEHANDLE f_handle, LIMATTRIBUTES attr,
     }
 
     return l;
+}
+
+PyObject* get_recorded_data_int(LIMFILEHANDLE f_handle, LIMATTRIBUTES attr)
+{
+    // Initialize a dictionary
+    PyObject* d = PyDict_New();
+
+    // Fill the dictionary
+    PyDict_SetItemString(d, "unknown_keys_for_int_data",
+        PyUnicode_FromString("Not implemented yet."));
+
+    // Return the dictionary
+    return d;
+}
+
+PyObject* get_recorded_data_double(LIMFILEHANDLE f_handle, LIMATTRIBUTES attr)
+{
+    // Sequence count
+    LIMUINT uiPosCount = attr.uiSequenceCount;
+
+    printf("Processing %d sequences.\n", uiPosCount);
+
+    // Load Recorded Data
+    const LIMWCHAR *doubleValues[] = {L"X", L"Y", L"Z", L"Z1", L"Z2", L"HEATSTAGE_T", L"ADC_VOLTAGE_0"};
+    const char *key_names[] = {"X", "Y", "Z", "Z1", "Z2", "HEATSTAGE_T", "ADC_VOLTAGE_0"};
+
+    // Initialize a dictionary
+    PyObject* d = PyDict_New();
+
+    int n_values = sizeof(doubleValues)/sizeof(doubleValues[0]);
+    for (int i = 0; i < n_values; i++)
+    {
+        // First check if there are recordings for current value
+        double test;
+        if (Lim_GetRecordedDataDouble(f_handle, doubleValues[i], 0, &test) != LIM_OK)
+        {
+               // Continue to the next recording
+               printf("No recordings found for key %s.\n", key_names[i]);
+               continue;
+        }
+
+        // Create a list to store the values
+        PyObject* l = PyList_New((Py_ssize_t) uiPosCount);
+
+        double doubleVal = 0;
+        for (unsigned int j = 0; j < uiPosCount; j++)
+        {
+            if (Lim_GetRecordedDataDouble(f_handle, doubleValues[i], j, &doubleVal) == LIM_OK)
+            {
+                PyList_SetItem(l, j, PyFloat_FromDouble(doubleVal));
+            }
+        }
+
+        // Add the list to the dictionary with the correct key
+        printf("Adding the list to the dictionary under key %s.\n", key_names[i]);
+
+        PyDict_SetItemString(d, key_names[i], l);
+
+    }
+
+    // Return the dictionary
+    return d;
+}
+
+PyObject* get_recorded_data_string(LIMFILEHANDLE f_handle, LIMATTRIBUTES attr)
+{
+    // Initialize a dictionary
+    PyObject* d = PyDict_New();
+
+    // Fill the dictionary
+    PyDict_SetItemString(d, "unknown_keys_for_string_data",
+        PyUnicode_FromString("Not implemented yet."));
+
+    // Return the dictionary
+    return d;
 }

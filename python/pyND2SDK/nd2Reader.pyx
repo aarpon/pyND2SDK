@@ -365,18 +365,48 @@ cdef class nd2Reader:
         # Convert the experiment structure to dict
         return LIMEXPERIMENT_to_dict(&self.exp)
 
+    def get_recorded_data(self):
+        """
+        Get the recorded data and return it in a python dictionary.
+        :return: recorded data
+        :rtype: dict
+        """
+
+        if not self.is_open():
+            return {}
+
+        # Initialize the dictionary
+        d = {}
+
+        # Retrieve the data
+        double_data = get_recorded_data_double(self.file_handle,
+                                               self.attr)
+
+        int_data = get_recorded_data_int(self.file_handle,
+                                         self.attr)
+
+        string_data = get_recorded_data_string(self.file_handle,
+                                               self.attr)
+
+        # Store it
+        d['double_data'] = double_data
+        d['integer_data'] = int_data
+        d['string_data'] = string_data
+
+        # Return it
+        return d
+
+
     def get_z_stack_home(self):
         """
         Return the Z stack home.
         :return: Z stack home
         :rtype: int
         """
-        cdef LIMINT home
+        cdef LIMINT home = 0
 
         if not self.is_open():
             return None
-
-        home = None
 
         # Get the experiment as a python dictionary
         exp = self.get_experiment()

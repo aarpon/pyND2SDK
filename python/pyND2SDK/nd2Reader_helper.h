@@ -10,7 +10,11 @@
 
     Debug functions: dump the LIM structures for control
 
+    These functions are only compiled if a DEBUG build is asked.
+
 ----------------------------------------------------------------------------- */
+
+#ifdef DEBUG
 
 void dump_LIMATTRIBUTES_struct(const LIMATTRIBUTES *s);
 void dump_LIMMETADATA_DESC_struct(const LIMMETADATA_DESC *s);
@@ -20,6 +24,8 @@ void dump_LIMEXPERIMENTLEVEL_struct(const LIMEXPERIMENTLEVEL *s);
 void dump_LIMEXPERIMENT_struct(const LIMEXPERIMENT *s);
 void dump_LIMPICTURE_struct(const LIMPICTURE *p);
 void dump_LIMLOCALMETADATA_struct(const LIMLOCALMETADATA *p);
+
+#endif
 
 /* -----------------------------------------------------------------------------
 
@@ -57,5 +63,8 @@ void load_image_data(LIMFILEHANDLE hFile, LIMPICTURE *p, LIMLOCALMETADATA *m, un
 PyObject* index_to_subscripts(LIMUINT seq_index, LIMEXPERIMENT *exp, LIMUINT *coords);
 LIMUINT subscripts_to_index(LIMEXPERIMENT *exp, LIMUINT *coords);
 PyObject* parse_stage_coords(LIMFILEHANDLE f_handle, LIMATTRIBUTES attr, int iUseAlignment);
+PyObject* get_recorded_data_int(LIMFILEHANDLE f_handle, LIMATTRIBUTES attr);
+PyObject* get_recorded_data_double(LIMFILEHANDLE f_handle, LIMATTRIBUTES attr);
+PyObject* get_recorded_data_string(LIMFILEHANDLE f_handle, LIMATTRIBUTES attr);
 
 #endif

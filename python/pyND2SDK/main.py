@@ -38,6 +38,10 @@ if __name__ == "__main__":
     exp = r.get_experiment()
     pprint(exp)
 
+    # Get recorded data
+    data = r.get_recorded_data();
+    pprint(data)
+
     # Test index to subx
     subs = r.map_index_to_subscripts(0)
     pprint(subs)
@@ -49,7 +53,8 @@ if __name__ == "__main__":
     pprint(coords)
 
     # Get the Z stack home
-    pprint(r.get_z_stack_home())
+    home = r.get_z_stack_home()
+    pprint(home)
 
     # Load the first image by index
     picture = r.load_by_index(0)
