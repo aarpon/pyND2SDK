@@ -68,5 +68,6 @@ PyObject* get_recorded_data_int(LIMFILEHANDLE f_handle, LIMATTRIBUTES attr);
 PyObject* get_recorded_data_double(LIMFILEHANDLE f_handle, LIMATTRIBUTES attr);
 PyObject* get_recorded_data_string(LIMFILEHANDLE f_handle, LIMATTRIBUTES attr);
 PyObject* get_custom_data(LIMFILEHANDLE f_handle);
+PyObject* get_multi_point_names(LIMFILEHANDLE f_handle, LIMUINT n_multi_points);
 
 #endif

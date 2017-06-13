@@ -273,15 +273,15 @@ cdef class nd2Reader:
         """
 
         if not self.is_open():
-            return []
+            return [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
         # Get data in pythonic form
         exp = self.get_experiment()
         attr = self.get_attributes()
 
-        x = 0
-        y = 0
-        z = 1
+        x = 0 # Width
+        y = 0 # Height
+        z = 1 # Number of planes
         c = 1 # Number of channels
         t = 1 # Number of timepoints
         m = 1 # Number of positions
@@ -328,6 +328,18 @@ cdef class nd2Reader:
 
         # Convert metadata structure to dict
         return LIMMETADATA_DESC_to_dict(&self.meta)
+
+    def get_position_names(self):
+        """
+        Return the names of the positions
+        :return: list of position names
+        :rtype: list
+        """
+
+        if not self.is_open():
+            return []
+
+        return get_multi_point_names(self.file_handle, self.positions)
 
     def get_picture(self, seqIndex):
         """
@@ -576,6 +588,47 @@ cdef class nd2Reader:
             raise Exception("Could not retrieve the file metadata!")
 
         return self.file_handle
+
+    @property
+    def width(self):
+        return self.get_geometry()[0]
+
+    @property
+    def height(self):
+        return self.get_geometry()[1]
+
+    @property
+    def planes(self):
+        return self.get_geometry()[2]
+
+    @property
+    def channels(self):
+        return self.get_geometry()[3]
+
+    @property
+    def timepoints(self):
+        return self.get_geometry()[4]
+
+    @property
+    def positions(self):
+        return self.get_geometry()[5]
+
+    @property
+    def other(self):
+        return self.get_geometry()[6]
+
+    @property
+    def sequences(self):
+        return self.get_geometry()[7]
+
+    @property
+    def bits(self):
+        return self.get_geometry()[8]
+
+    @property
+    def significant_bits(self):
+        return self.get_geometry()[9]
+
 
 # Clean (own) memory when finalizing the array
 cdef class _finalizer:

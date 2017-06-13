@@ -403,6 +403,28 @@ void load_image_data(LIMFILEHANDLE hFile, LIMPICTURE *picture, LIMLOCALMETADATA 
 
 }
 
+PyObject* get_multi_point_names(LIMFILEHANDLE f_handle, LIMUINT n_multi_points)
+{
+
+    // Create a list
+    PyObject* l = PyList_New((Py_ssize_t) n_multi_points);
+
+    for (unsigned int i = 0; i < n_multi_points; i++)
+    {
+
+        // Read current name
+        LIMWCHAR wstrPointName[128];
+        Lim_GetMultipointName(f_handle, i, wstrPointName);
+
+        // Pack it into the list
+        PyList_SetItem(l, i,
+            PyUnicode_FromWideChar(wstrPointName, -1));
+    }
+
+    // Return the list
+    return l;
+}
+
 void to_rgb(LIMPICTURE *dstPicBuf, const LIMPICTURE *srcPicBuf)
 {
 // float point image

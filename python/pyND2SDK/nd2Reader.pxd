@@ -49,7 +49,8 @@ cdef extern from "nd2Reader_helper.h":
     object get_recorded_data_int(LIMFILEHANDLE f, LIMATTRIBUTES a)
     object get_recorded_data_double(LIMFILEHANDLE f, LIMATTRIBUTES a)
     object get_recorded_data_string(LIMFILEHANDLE f, LIMATTRIBUTES a)
-    object get_custom_data(LIMFILEHANDLE f_handle);
+    object get_custom_data(LIMFILEHANDLE f_handle)
+    object get_multi_point_names(LIMFILEHANDLE f, LIMUINT n)
 
 cdef extern from "nd2ReadSDK.h":
 
@@ -247,6 +248,11 @@ cdef extern from "nd2ReadSDK.h":
                                               LIMINT uiCustomDataIndex,
                                               LIMWSTR wszData,
                                               LIMINT *piLength)
+
+    LIMRESULT _Lim_GetMultipointName \
+                    "Lim_GetMultipointName"(LIMFILEHANDLE hFile,
+                                            LIMUINT uiPointIdx,
+                                            LIMWSTR wstrPointName)
 
     # @TODO: Implement python code
     #  Read the alignment points
