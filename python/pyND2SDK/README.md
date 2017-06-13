@@ -20,4 +20,9 @@
 
 ## Lim_GetCustomDataDouble
 
-* How to use? 
+* How to use?
+
+## Lim_FileGetImageRectData
+
+Unclear how to use: can it be used to read a rectangle from an image and return 
+it at 100% scale? 
