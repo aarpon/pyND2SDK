@@ -22,7 +22,8 @@ setup(
                                          "pyND2SDK/nd2Reader_helper.c"],
                   include_dirs=[SDKIncludePath, get_include()],
                   libraries=['v6_w32_nd2ReadSDK'],
-                  library_dirs=[SDKLibPath]
+                  library_dirs=[SDKLibPath],
+                  define_macros=[('DEBUG', '1')]
                   )
     ]),
     requires=["Cython", "numpy"]
