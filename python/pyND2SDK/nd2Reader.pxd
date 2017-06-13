@@ -40,6 +40,7 @@ cdef extern from "nd2Reader_helper.h":
     uint16_t * get_uint16_pointer_to_picture_data(LIMPICTURE * p)
     uint8_t * get_uint8_pointer_to_picture_data(LIMPICTURE * p)
     void load_image_data(int hFile, LIMPICTURE *p, LIMLOCALMETADATA *m, int uiSeqIndex)
+    void to_rgb(LIMPICTURE *d, const LIMPICTURE *s)
 
     # Metadata functions
     object index_to_subscripts(LIMUINT seq_index, LIMEXPERIMENT *exp, LIMUINT *coords)

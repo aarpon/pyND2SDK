@@ -367,7 +367,7 @@ PyObject* LIMLOCALMETADATA_to_dict(const LIMLOCALMETADATA * s)
 
 /* -----------------------------------------------------------------------------
 
-    Data access functions
+    Data access/conversion functions
 
 ----------------------------------------------------------------------------- */
 
@@ -401,6 +401,113 @@ void load_image_data(LIMFILEHANDLE hFile, LIMPICTURE *picture, LIMLOCALMETADATA 
     // Load the picture into the prepared buffer
     Lim_FileGetImageData(hFile, uiSeqIndex, picture, meta);
 
+}
+
+void to_rgb(LIMPICTURE *dstPicBuf, const LIMPICTURE *srcPicBuf)
+{
+// float point image
+   if (32 == srcPicBuf->uiBitsPerComp)
+   {
+      LIMUINT c = srcPicBuf->uiComponents;
+      float fMin = FLT_MAX, fMax = -FLT_MAX;
+      for (LIMUINT i = 0; i < srcPicBuf->uiHeight; i++)
+      {
+         float *pSrcWlk = (float *)srcPicBuf->pImageData + i * srcPicBuf->uiWidthBytes / sizeof(float);
+         float *pSrcEnd = pSrcWlk + c * srcPicBuf->uiWidth;
+
+         while (pSrcWlk != pSrcEnd)
+         {
+            float fVal = 0.0;
+            for (LIMUINT j = 0; j < c; j++)
+               fVal += pSrcWlk[j];
+            fVal /= c;
+
+            if (fVal < fMin) fMin = fVal;
+            if (fMax < fVal) fMax = fVal;
+            pSrcWlk += c;
+         }
+      }
+
+      for (LIMUINT i = 0; i < min(dstPicBuf->uiHeight, srcPicBuf->uiHeight); i++)
+      {
+         unsigned char* pDstWlk = (unsigned char*) dstPicBuf->pImageData + i * dstPicBuf->uiWidthBytes;
+         unsigned char* pDstEnd = pDstWlk + 3 * dstPicBuf->uiWidth;
+
+         float *pSrcWlk = (float *)srcPicBuf->pImageData + i * srcPicBuf->uiWidthBytes / sizeof(float);
+         float *pSrcEnd = pSrcWlk + c * srcPicBuf->uiWidth;
+
+         while (pSrcWlk != pSrcEnd && pDstWlk != pDstEnd)
+         {
+            float fVal = 0.0;
+            for (LIMUINT j = 0; j < c; j++)
+               fVal += pSrcWlk[j];
+            fVal /= c;
+
+            unsigned char val = (unsigned char)((fVal - fMin) / (fMax - fMin) * 255.0f);
+            pDstWlk[0] = pDstWlk[1] = pDstWlk[2] = val;
+
+            pSrcWlk += c;
+            pDstWlk += 3;
+         }
+      }
+   }
+
+   else
+   {
+      for (LIMUINT i = 0; i < min(dstPicBuf->uiHeight, srcPicBuf->uiHeight); i++)
+      {
+         unsigned char* pDstWlk = (unsigned char*) dstPicBuf->pImageData + i * dstPicBuf->uiWidthBytes;
+         //unsigned char* pDstEnd = pDstWlk + 3 * dstPicBuf->uiWidth;
+         if (8 == srcPicBuf->uiBitsPerComp)
+         {
+            unsigned char* pSrcWlk = (unsigned char*) srcPicBuf->pImageData + i * srcPicBuf->uiWidthBytes;
+            unsigned char* pSrcEnd = pSrcWlk + srcPicBuf->uiComponents * srcPicBuf->uiWidth;
+
+            if (srcPicBuf->uiComponents == 3)
+               memcpy(pDstWlk, pSrcWlk, pSrcEnd - pSrcWlk);
+
+            else
+            {
+               while (pSrcWlk < pSrcEnd)
+               {
+                  LIMUINT val = 0;
+                  for (LIMUINT j = 0; j < srcPicBuf->uiComponents; j++)
+                     val += *pSrcWlk++;
+                  pDstWlk[0] = pDstWlk[1] = pDstWlk[2] = val / srcPicBuf->uiComponents;
+                  pDstWlk += 3;
+               }
+            }
+         }
+         else if (8 < srcPicBuf->uiBitsPerComp && srcPicBuf->uiBitsPerComp <= 16)
+         {
+            LIMUINT iShift = srcPicBuf->uiBitsPerComp - dstPicBuf->uiBitsPerComp;
+            uint16_t* pSrcWlk = (uint16_t*) srcPicBuf->pImageData + i * srcPicBuf->uiWidthBytes / 2;
+            uint16_t* pSrcEnd = pSrcWlk + srcPicBuf->uiComponents * srcPicBuf->uiWidth;
+
+            if (srcPicBuf->uiComponents == 3)
+            {
+               for (LIMUINT j = 0; j < srcPicBuf->uiWidth; j++)
+               {
+                  pDstWlk[3*j+0] = pSrcWlk[3*j+0] >> iShift;
+                  pDstWlk[3*j+1] = pSrcWlk[3*j+1] >> iShift;
+                  pDstWlk[3*j+2] = pSrcWlk[3*j+2] >> iShift;
+               }
+            }
+
+            else
+            {
+               while (pSrcWlk < pSrcEnd)
+               {
+                  LIMUINT val = 0;
+                  for (LIMUINT j = 0; j < srcPicBuf->uiComponents; j++)
+                     val += *pSrcWlk++;
+                  pDstWlk[0] = pDstWlk[1] = pDstWlk[2] = (val / srcPicBuf->uiComponents) >> iShift;
+                  pDstWlk += 3;
+               }
+            }
+         }
+      }
+    }
 }
 
 /* -----------------------------------------------------------------------------
