@@ -310,7 +310,7 @@ cdef class nd2Reader:
         b = attr['uiBpcInMemory']
         s = attr['uiBpcSignificant']
 
-        return [x, y, z, c, t, m, o, b, s]
+        return [x, y, z, c, t, m, o, g, b, s]
 
     def get_metadata(self):
         """
