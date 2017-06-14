@@ -19,7 +19,7 @@ cdef class Picture:
     cdef int n_components
     cdef int seq_index
 
-    def __init__(self, int width, int height, int bpc, int n_components,
+    def __cinit__(self, int width, int height, int bpc, int n_components,
                  LIMFILEHANDLE hFile, int seq_index):
 
         # Store some arguments for easier access
@@ -144,7 +144,7 @@ cdef class nd2Reader:
     cdef public file_name
     cdef dict Pictures
 
-    def __init__(self):
+    def __cinit__(self):
         self.file_name = ""
         self.file_handle = 0
         self.Pictures = {}
@@ -341,24 +341,6 @@ cdef class nd2Reader:
 
         return get_multi_point_names(self.file_handle, self.positions)
 
-    def get_picture(self, seqIndex):
-        """
-        Return the Picture for given sequence index. The sequence is loaded
-        if necessary.
-        :param seqIndex: index of the sequence to load
-        :type seqIndex: int
-        :return: picture
-        :rtype: Picture
-        """
-
-        if not self.is_open():
-            return None
-
-        if seqIndex not in self.Pictures:
-            self.load(seqIndex)
-
-        return self.Pictures[seqIndex]
-
     def get_recorded_data(self):
         """
         Get the recorded data and return it in a python dictionary.
@@ -496,6 +478,11 @@ cdef class nd2Reader:
 
         if not self.is_open():
             return None
+
+        # If the image was loaded already, return it from the cache
+        if index in self.Pictures:
+            print("Returning picture from cache.")
+            return self.Pictures[index]
 
         # Get the attributes
         attr = self.get_attributes()
@@ -656,7 +643,7 @@ cdef void set_base(np.ndarray arr, void *carr):
 cdef to_uint8_numpy_array(LIMPICTURE * pPicture, int n_rows, int n_cols,
                           int n_components, int component):
 
-    # Get a uint16_t pointer to the picure data
+    # Get a uint8_t pointer to the picture data
     cdef uint8_t *mat = get_uint8_pointer_to_picture_data(pPicture)
 
     # Create a contiguous 1D memory view over the whole array
@@ -683,7 +670,7 @@ cdef to_uint8_numpy_array(LIMPICTURE * pPicture, int n_rows, int n_cols,
 cdef to_uint16_numpy_array(LIMPICTURE * pPicture, int n_rows, int n_cols,
                            int n_components, int component):
 
-    # Get a uint16_t pointer to the picure data
+    # Get a uint16_t pointer to the picture data
     cdef uint16_t *mat = get_uint16_pointer_to_picture_data(pPicture)
 
     # Create a contiguous 1D memory view over the whole array
@@ -710,7 +697,7 @@ cdef to_uint16_numpy_array(LIMPICTURE * pPicture, int n_rows, int n_cols,
 cdef to_float_numpy_array(LIMPICTURE * pPicture, int n_rows, int n_cols,
                           int n_components, int component):
 
-    # Get a uint16_t pointer to the picure data
+    # Get a float pointer to the picture data
     cdef float *mat = get_float_pointer_to_picture_data(pPicture)
 
     # Create a contiguous 1D memory view over the whole array

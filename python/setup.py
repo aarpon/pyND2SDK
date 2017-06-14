@@ -5,6 +5,14 @@ from numpy import get_include
 
 from pyND2SDK.settings import SDKIncludePath, SDKLibPath
 
+# To create a debug build, change the line:
+#
+#     define_macros=[]
+#
+# into:
+#
+#     define_macros=[('DEBUG', '1')]
+
 setup(
     name='pyND2SDK',
     description='Python wrapper for the Nikon ND2 SDK C library.',
