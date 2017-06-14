@@ -388,18 +388,46 @@ uint8_t *get_uint8_pointer_to_picture_data(const LIMPICTURE * p)
     return (uint8_t *)p->pImageData;
 }
 
-void load_image_data(LIMFILEHANDLE hFile, LIMPICTURE *picture, LIMLOCALMETADATA *meta, unsigned int uiSeqIndex)
+/**
+ The LIMPICTURE must be initialized already!
+*/
+void load_image_data(LIMFILEHANDLE hFile, LIMPICTURE *picture,
+    LIMLOCALMETADATA *meta, LIMUINT uiSeqIndex, LIMINT iStretchMode)
 {
     LIMATTRIBUTES attr;
 
     // Read the attributes
     Lim_FileGetAttributes(hFile, &attr);
 
-    // Initialize the picture
-    Lim_InitPicture(picture, attr.uiWidth, attr.uiHeight, attr.uiBpcSignificant, attr.uiComp);
+    #ifdef DEBUG
+        printf("Image size from the file attributes is (%dx%d).\n",
+            attr.uiWidth, attr.uiHeight);
+        printf("Image size from the LIMPICTURE is (%dx%d).\n",
+            picture->uiWidth, picture->uiHeight);
+    #endif
 
-    // Load the picture into the prepared buffer
-    Lim_FileGetImageData(hFile, uiSeqIndex, picture, meta);
+    // Check whether the required Picture size corresponds to the size
+    // stored in the attributes. If yes, we can read the image faster.
+    if (attr.uiWidth == picture->uiWidth && attr.uiHeight == picture->uiHeight)
+    {
+        #ifdef DEBUG
+            printf("Using fast loading into buffer.\n");
+        #endif
+
+        // Load the picture into the prepared buffer
+        Lim_FileGetImageData(hFile, uiSeqIndex, picture, meta);
+    }
+    else
+    {
+        #ifdef DEBUG
+            printf("Loading and resampling into buffer.\n");
+        #endif
+
+        // Load and rescale the image into the prepared buffer
+        Lim_FileGetImageRectData(hFile, uiSeqIndex, picture->uiWidth,
+            picture->uiHeight, 0, 0, picture->uiWidth, picture->uiHeight,
+            picture->pImageData, picture->uiWidthBytes, iStretchMode, meta);
+    }
 
 }
 

@@ -52,7 +52,7 @@ PyObject* LIMLOCALMETADATA_to_dict(const LIMLOCALMETADATA * s);
 float *get_float_pointer_to_picture_data(const LIMPICTURE * p);
 uint16_t *get_uint16_pointer_to_picture_data(const LIMPICTURE * p);
 uint8_t *get_uint8_pointer_to_picture_data(const LIMPICTURE * p);
-void load_image_data(LIMFILEHANDLE hFile, LIMPICTURE *p, LIMLOCALMETADATA *m, unsigned int uiSeqIndex);
+void load_image_data(LIMFILEHANDLE hFile, LIMPICTURE *p, LIMLOCALMETADATA *m, LIMUINT uiSeqIndex, LIMINT iStretchMode);
 void to_rgb(LIMPICTURE *dstPicBuf, const LIMPICTURE *srcPicBuf);
 
 /* -----------------------------------------------------------------------------

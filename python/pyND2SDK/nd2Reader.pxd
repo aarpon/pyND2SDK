@@ -15,6 +15,7 @@ cdef extern from "nd2Reader_helper.h":
 
     ctypedef int LIMFILEHANDLE
     ctypedef unsigned int LIMUINT
+    ctypedef int LIMINT
 
     # DEBUG functions
     void dump_LIMATTRIBUTES_struct(LIMATTRIBUTES *s)
@@ -39,7 +40,7 @@ cdef extern from "nd2Reader_helper.h":
     float * get_float_pointer_to_picture_data(LIMPICTURE * p)
     uint16_t * get_uint16_pointer_to_picture_data(LIMPICTURE * p)
     uint8_t * get_uint8_pointer_to_picture_data(LIMPICTURE * p)
-    void load_image_data(LIMFILEHANDLE hFile, LIMPICTURE *p, LIMLOCALMETADATA *m, int uiSeqIndex)
+    void load_image_data(LIMFILEHANDLE hFile, LIMPICTURE *p, LIMLOCALMETADATA *m, LIMUINT uiSeqIndex, LIMINT iStretchMode)
     void to_rgb(LIMPICTURE *d, const LIMPICTURE *s)
 
     # Metadata functions
@@ -65,6 +66,9 @@ cdef extern from "nd2ReadSDK.h":
     enum: LIMLOOP_MULTIPOINT
     enum: LIMLOOP_Z
     enum: LIMLOOP_OTHER
+    enum: LIMSTRETCH_QUICK
+    enum: LIMSTRETCH_SPLINES
+    enum: LIMSTRETCH_LINEAR
 
     # File handle
     ctypedef int LIMFILEHANDLE

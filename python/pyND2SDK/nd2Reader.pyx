@@ -18,9 +18,13 @@ cdef class Picture:
     cdef int bpc
     cdef int n_components
     cdef int seq_index
+    cdef int stretch_mode
 
     def __cinit__(self, int width, int height, int bpc, int n_components,
                  LIMFILEHANDLE hFile, int seq_index):
+
+        # Initialize stretch mode to default
+        self.stretch_mode = LIMSTRETCH_LINEAR
 
         # Store some arguments for easier access
         self.width = width
@@ -36,7 +40,8 @@ cdef class Picture:
 
         # Load the image and store it
         cdef LIMLOCALMETADATA temp_metadata
-        load_image_data(hFile, &temp_pic, &temp_metadata, seq_index)
+        load_image_data(hFile, &temp_pic, &temp_metadata, seq_index,
+                        self.stretch_mode)
         self.picture = temp_pic
         self.metadata = temp_metadata
 
@@ -444,7 +449,8 @@ cdef class nd2Reader:
         """
         return self.file_handle != 0
 
-    def load(self, LIMUINT time, LIMUINT point, LIMUINT plane, LIMUINT other = 0):
+    def load(self, LIMUINT time, LIMUINT point, LIMUINT plane,
+             LIMUINT other = 0, LIMUINT width=-1, LIMUINT height=-1):
         """Loads, stores a return the picture.
 
         :param index: index of the sequence (image) to load
@@ -461,14 +467,18 @@ cdef class nd2Reader:
         index = self.map_subscripts_to_index(time, point, plane, other)
 
         # Load the Picture
-        p = self.load_by_index(index)
+        p = self.load_by_index(index, width, height)
 
         # Return the Picture
         return p
 
-    def load_by_index(self, LIMUINT index):
-        """Loads, stores a return the picture.
+    def load_by_index(self, LIMUINT index, LIMUINT width=-1, LIMUINT height=-1):
+        """Loads, stores a return the picture at given index.
 
+        Optionally, it can resize to requested (width x height) on loading;
+        in this case, however, the image is not cached.
+
+        :type width: unsignded int
         :param index: index of the sequence (image) to load
         :type height: unsigned int
 
@@ -480,7 +490,7 @@ cdef class nd2Reader:
             return None
 
         # If the image was loaded already, return it from the cache
-        if index in self.Pictures:
+        if index in self.Pictures and width == -1 and height == -1:
             print("Returning picture from cache.")
             return self.Pictures[index]
 
@@ -491,15 +501,27 @@ cdef class nd2Reader:
             raise Exception("The requested sequence does not exist in the file!")
 
         # Create a new Picture objects that loads the requested image
-        p = Picture(attr['uiWidth'],
-                    attr['uiHeight'],
+        store = False
+        if width == -1:
+            width = attr['uiWidth']
+            store = True
+        if height == -1:
+            height = attr['uiHeight']
+            store = True
+
+        p = Picture(width,
+                    height,
                     attr['uiBpcSignificant'],
                     attr['uiComp'],
                     self.file_handle,
                     index)
 
-        # Store the picture
-        self.Pictures[index] = p
+        # Store the picture if full size
+        if store:
+            print("Adding Picture to the cache.")
+            self.Pictures[index] = p
+        else:
+            print("The Picture is resized and is NOT being added to the cache.")
 
         # Return the Picture
         return p
