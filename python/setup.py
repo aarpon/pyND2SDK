@@ -12,6 +12,11 @@ from pyND2SDK.settings import SDKIncludePath, SDKLibPath
 # into:
 #
 #     define_macros=[('DEBUG', '1')]
+#
+# For exceptionally verbose output, set:
+#
+#     define_macros=[('DEBUG', '1'), ('VERBOSE', '1')]
+
 
 setup(
     name='pyND2SDK',
@@ -31,7 +36,7 @@ setup(
                   include_dirs=[SDKIncludePath, get_include()],
                   libraries=['v6_w32_nd2ReadSDK'],
                   library_dirs=[SDKLibPath],
-                  define_macros=[('DEBUG', '1')]
+                  define_macros=[('DEBUG', '1'), ('VERBOSE', '1')]
                   )
     ]),
     requires=["Cython", "numpy"]

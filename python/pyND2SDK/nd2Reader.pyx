@@ -9,19 +9,116 @@ np.import_array()
 from libc.stddef cimport wchar_t
 
 
+# Binary class
+cdef class Binary:
+    cdef LIMPICTURE picture
+    cdef unsigned seq_index
+    cdef unsigned bin_index
+    cdef unsigned int width
+    cdef unsigned int height
+
+    def __cinit__(self, LIMFILEHANDLE hFile, int seq_index, int bin_index):
+
+        cdef LIMATTRIBUTES attr
+        cdef LIMPICTURE temp_pic
+
+        self.seq_index = seq_index
+        self.bin_index = bin_index
+
+        # Initialize the LIMPicture
+        if _Lim_FileGetAttributes(hFile, &attr) != LIM_OK:
+            raise Exception("Could not retrieve file attributes!")
+
+        # Get attributes into a python dictionary
+        attrib = LIMATTRIBUTES_to_dict(&attr)
+
+        self.width = attrib['uiWidth']
+        self.height = attrib['uiHeight']
+
+        if _Lim_InitPicture(&temp_pic, self.width,
+                            self.height, 8, 1) == 0:
+            raise Exception("Could not initialize picture!")
+
+        # Load the binary data
+        _Lim_FileGetBinary(hFile, seq_index, bin_index, &temp_pic);
+
+        # Store the loaded binary data
+        self.picture = temp_pic
+
+    def __dealloc__(self):
+        """
+        Destructor.
+
+        When the Picture object is destroyed, we make sure
+        to destroy also the LIM picture it refers to.
+        """
+        print("Deleting binary picture %d for sequence %d" %
+              (self.bin_index, self.seq_index))
+        _Lim_DestroyPicture(&self.picture)
+
+    def __getitem__(self, comp):
+        """
+        Return image at given component number as numpy array (memoryview).
+
+        Same as Binary.image(comp)
+
+        @see image()
+
+        :param comp: component number
+        :type comp: int
+        :return: image
+        :rtype: np.array (memoryview)
+        """
+        return self.image(comp)
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __str__(self):
+        """
+        Display summary of the Picture.
+        :return:
+        :rtype:
+        """
+
+        str = "Binary:\n" \
+              "   XY = (%dx%d), sequence index = %d, binary index = %d\n" % \
+              (self.width, self.height, self.seq_index, self.bin_index)
+
+        return str
+
+    def image(self):
+        """
+        Return image at given component number as numpy array (memoryview).
+        :param comp: component number
+        :type comp: int
+        :return: image
+        :rtype: np.array (memoryview)
+        """
+
+        cdef np.ndarray np_arr
+
+        # Create a memory view to the data
+        np_arr = to_uint8_numpy_array(&self.picture, self.height,
+                                      self.width, self.n_components, 0)
+
 # Picture class
 cdef class Picture:
     cdef LIMPICTURE picture
     cdef LIMLOCALMETADATA metadata
-    cdef int width
-    cdef int height
-    cdef int bpc
-    cdef int n_components
-    cdef int seq_index
+    cdef unsigned int width
+    cdef unsigned int height
+    cdef unsigned int bpc
+    cdef unsigned int n_components
+    cdef unsigned int seq_index
     cdef int stretch_mode
 
-    def __cinit__(self, int width, int height, int bpc, int n_components,
+    def __cinit__(self, unsigned int width, unsigned int height,
+                  unsigned int bpc, unsigned int n_components,
                  LIMFILEHANDLE hFile, int seq_index):
+
+        if width == 0 or height == 0:
+            raise ValueError("The Picture cannot have 0 size!")
 
         # Initialize stretch mode to default
         self.stretch_mode = LIMSTRETCH_LINEAR
@@ -170,7 +267,7 @@ cdef class nd2Reader:
         :rtype:
         """
         if not self.is_open():
-            return "ND2Reader: no file opened"
+            return "nd2Reader: no file opened"
         else:
 
             # Get the geometry
@@ -215,6 +312,14 @@ cdef class nd2Reader:
 
         # Convert the attribute structure to dict
         return LIMATTRIBUTES_to_dict(&self.attr)
+
+    def get_binary_descriptors(self):
+
+        if not self.is_open():
+            return {}
+
+        # Read the binary descriptors and return them in a dictionary
+        return get_binary_descr(self.file_handle)
 
     def get_custom_data(self):
         """
@@ -333,6 +438,13 @@ cdef class nd2Reader:
 
         # Convert metadata structure to dict
         return LIMMETADATA_DESC_to_dict(&self.meta)
+
+    def get_num_binaries(self):
+
+        if not self.is_open():
+            return 0
+
+        return get_num_binary_descriptors(self.file_handle)
 
     def get_position_names(self):
         """
@@ -472,6 +584,29 @@ cdef class nd2Reader:
         # Return the Picture
         return p
 
+    def load_binary_by_index(self, LIMUINT seq_index, LIMUINT bin_index):
+        """
+        Loads and returns the binary image at given index.
+        :param index:
+        :type index:
+        :return:
+        :rtype:
+        """
+
+        if not self.is_open():
+            return None
+
+        cdef unsigned int num_binaries = self.get_num_binaries()
+
+        if num_binaries == 0:
+            return None
+
+        # Load the binary picture
+        b = Binary(self.file_handle, seq_index, bin_index)
+
+        # Return the binary
+        return b
+
     def load_by_index(self, LIMUINT index, LIMUINT width=-1, LIMUINT height=-1):
         """Loads, stores a return the picture at given index.
 
@@ -596,6 +731,10 @@ cdef class nd2Reader:
         if _Lim_FileGetMetadata(self.file_handle, &self.meta) != LIM_OK:
             raise Exception("Could not retrieve the file metadata!")
 
+        return self.file_handle
+
+    @property
+    def file_handle(self):
         return self.file_handle
 
     @property

@@ -23,7 +23,9 @@ void dump_LIMPICTUREPLANE_DESC_struct(const LIMPICTUREPLANE_DESC *s);
 void dump_LIMEXPERIMENTLEVEL_struct(const LIMEXPERIMENTLEVEL *s);
 void dump_LIMEXPERIMENT_struct(const LIMEXPERIMENT *s);
 void dump_LIMPICTURE_struct(const LIMPICTURE *p);
-void dump_LIMLOCALMETADATA_struct(const LIMLOCALMETADATA *p);
+void dump_LIMLOCALMETADATA_struct(const LIMLOCALMETADATA *s);
+void dump_LIMBINARIES_struct(const LIMBINARIES *s);
+void dump_LIMBINARYDESCRIPTOR_struct(const LIMBINARYDESCRIPTOR *s);
 
 #endif
 
@@ -41,7 +43,8 @@ PyObject* LIMPICTUREPLANE_DESC_to_dict(const LIMPICTUREPLANE_DESC * s);
 PyObject* LIMEXPERIMENTLEVEL_to_dict(const LIMEXPERIMENTLEVEL * s);
 PyObject* LIMEXPERIMENT_to_dict(const LIMEXPERIMENT * s);
 PyObject* LIMLOCALMETADATA_to_dict(const LIMLOCALMETADATA * s);
-
+PyObject* LIMBINARIES_to_dict(const LIMBINARIES * s);
+PyObject* LIMBINARYDESCRIPTOR_to_dict(const LIMBINARYDESCRIPTOR * s);
 
 /* -----------------------------------------------------------------------------
 
@@ -69,5 +72,7 @@ PyObject* get_recorded_data_double(LIMFILEHANDLE f_handle, LIMATTRIBUTES attr);
 PyObject* get_recorded_data_string(LIMFILEHANDLE f_handle, LIMATTRIBUTES attr);
 PyObject* get_custom_data(LIMFILEHANDLE f_handle);
 PyObject* get_multi_point_names(LIMFILEHANDLE f_handle, LIMUINT n_multi_points);
+PyObject* get_binary_descr(LIMFILEHANDLE f_handle);
+LIMUINT get_num_binary_descriptors(LIMFILEHANDLE f_handle);
 
 #endif

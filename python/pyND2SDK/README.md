@@ -26,3 +26,7 @@
 
 Unclear how to use: can it be used to read a rectangle from an image and return 
 it at 100% scale? 
+
+## _Lim_FileGetBinary
+
+How do we know which combinations of sequence index and binary index exist?

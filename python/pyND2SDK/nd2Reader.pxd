@@ -35,6 +35,8 @@ cdef extern from "nd2Reader_helper.h":
     object LIMEXPERIMENTLEVEL_to_dict(LIMEXPERIMENTLEVEL * s)
     object LIMEXPERIMENT_to_dict(LIMEXPERIMENT * s)
     object LIMLOCALMETADATA_to_dict(const LIMLOCALMETADATA * s)
+    object LIMBINARIES_to_dict(const LIMBINARIES * s)
+    object LIMBINARYDESCRIPTOR_to_dict(const LIMBINARYDESCRIPTOR * s)
 
     # Data functions
     float * get_float_pointer_to_picture_data(LIMPICTURE * p)
@@ -52,6 +54,8 @@ cdef extern from "nd2Reader_helper.h":
     object get_recorded_data_string(LIMFILEHANDLE f, LIMATTRIBUTES a)
     object get_custom_data(LIMFILEHANDLE f_handle)
     object get_multi_point_names(LIMFILEHANDLE f, LIMUINT n)
+    LIMUINT get_num_binary_descriptors(LIMFILEHANDLE f)
+    object get_binary_descr(LIMFILEHANDLE f)
 
 cdef extern from "nd2ReadSDK.h":
 
@@ -121,10 +125,20 @@ cdef extern from "nd2ReadSDK.h":
     ctypedef struct LIMEXPERIMENT:
         pass
 
+    # Struct LIMPICTURE
     ctypedef struct LIMPICTURE:
         pass
 
+    # Struct LIMLOCALMETADATA
     ctypedef struct LIMLOCALMETADATA:
+        pass
+
+    # Struct LIMBINARIES
+    ctypedef struct LIMBINARIES:
+        pass
+
+    # Struct LIMBINARYDESCRIPTOR
+    ctypedef struct LIMBINARYDESCRIPTOR:
         pass
 
     # Open file for reading (and return file handle)
@@ -252,12 +266,22 @@ cdef extern from "nd2ReadSDK.h":
                                               LIMINT uiCustomDataIndex,
                                               LIMWSTR wszData,
                                               LIMINT *piLength)
-
+    # Get multi-point name
     LIMRESULT _Lim_GetMultipointName \
                     "Lim_GetMultipointName"(LIMFILEHANDLE hFile,
                                             LIMUINT uiPointIdx,
                                             LIMWSTR wstrPointName)
 
+    # Get binary descriptors
+    LIMRESULT _Lim_FileGetBinaryDescriptors \
+                    "Lim_FileGetBinaryDescriptors"(LIMFILEHANDLE hFile,
+                                                   LIMBINARIES* pBinaries)
+    # Get binary image
+    LIMRESULT _Lim_FileGetBinary \
+                    "Lim_FileGetBinary"(LIMFILEHANDLE hFile,
+                                        LIMUINT uiSequenceIndex,
+                                        LIMUINT uiBinaryIndex,
+                                        LIMPICTURE* pPicture)
     # @TODO: Implement python code
     #  Read the alignment points
     LIMRESULT _Lim_GetAlignmentPoints \

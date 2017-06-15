@@ -99,7 +99,7 @@ void dump_LIMEXPERIMENT_struct(const LIMEXPERIMENT *s)
 
 void dump_LIMPICTURE_struct(const LIMPICTURE *s)
 {
-    printf("uiWidth             = %d\n", (long)s->uiWidth);;
+    printf("uiWidth             = %d\n", (long)s->uiWidth);
     printf("uiHeight            = %d\n", (long)s->uiHeight);
     printf("uiBitsPerComp       = %d\n", (long)s->uiBitsPerComp);
     printf("uiComponents        = %d\n", (long)s->uiComponents);
@@ -116,6 +116,23 @@ void dump_LIMLOCALMETADATA_struct(const LIMLOCALMETADATA *s)
     printf("dZPos               = %f\n", (double)s->dZPos);
 }
 
+void dump_LIMBINARIES_struct(const LIMBINARIES *s)
+{
+    printf("uiCount             = %d\n", (long)s->uiCount);
+
+    for (unsigned int i = 0; i < s->uiCount; i++)
+    {
+        dump_LIMBINARYDESCRIPTOR_struct(&s->pDescriptors[i]);
+    }
+}
+
+void dump_LIMBINARYDESCRIPTOR_struct(const LIMBINARYDESCRIPTOR *s)
+{
+    printf("    wszImageID      = %ls\n", (LIMWSTR)s->wszName);
+    printf("    wszCompName     = %ls\n", (LIMWSTR)s->wszCompName);
+    printf("    uiColorRGB      = %d\n", (long)s->uiColorRGB);
+}
+
 #endif // DEBUG
 
 /* -----------------------------------------------------------------------------
@@ -127,6 +144,12 @@ void dump_LIMLOCALMETADATA_struct(const LIMLOCALMETADATA *s)
 
 PyObject* LIMATTRIBUTES_to_dict(const LIMATTRIBUTES *s)
 {
+    #ifdef DEBUG
+        #ifdef VERBOSE
+            dump_LIMATTRIBUTES_struct(s);
+        #endif
+    #endif
+
     // Create a dictionary
     PyObject* d = PyDict_New();
 
@@ -160,6 +183,11 @@ PyObject* LIMATTRIBUTES_to_dict(const LIMATTRIBUTES *s)
 
 PyObject* LIMMETADATA_DESC_to_dict(const LIMMETADATA_DESC *s)
 {
+    #ifdef DEBUG
+        #ifdef VERBOSE
+            dump_LIMMETADATA_DESC_struct(s);
+        #endif
+    #endif
 
     // Create a dictionary
     PyObject* d = PyDict_New();
@@ -214,6 +242,12 @@ PyObject* LIMMETADATA_DESC_to_dict(const LIMMETADATA_DESC *s)
 
 PyObject* LIMTEXTINFO_to_dict(const LIMTEXTINFO * s)
 {
+    #ifdef DEBUG
+        #ifdef VERBOSE
+            dump_LIMTEXTINFO_struct(s);
+        #endif
+    #endif
+
     // Create a dictionary
     PyObject* d = PyDict_New();
 
@@ -255,6 +289,12 @@ PyObject* LIMTEXTINFO_to_dict(const LIMTEXTINFO * s)
 
 PyObject* LIMPICTUREPLANE_DESC_to_dict(const LIMPICTUREPLANE_DESC * s)
 {
+    #ifdef DEBUG
+        #ifdef VERBOSE
+            dump_LIMPICTUREPLANE_DESC_struct(s);
+        #endif
+    #endif
+
     // Create a dictionary
     PyObject* d = PyDict_New();
 
@@ -276,6 +316,12 @@ PyObject* LIMPICTUREPLANE_DESC_to_dict(const LIMPICTUREPLANE_DESC * s)
 
 PyObject* LIMEXPERIMENTLEVEL_to_dict(const LIMEXPERIMENTLEVEL * s)
 {
+    #ifdef DEBUG
+        #ifdef VERBOSE
+            dump_LIMEXPERIMENTLEVEL_struct(s);
+        #endif
+    #endif
+
     // Create a dictionary
     PyObject* d = PyDict_New();
 
@@ -319,6 +365,12 @@ PyObject* LIMEXPERIMENTLEVEL_to_dict(const LIMEXPERIMENTLEVEL * s)
 
 PyObject* LIMEXPERIMENT_to_dict(const LIMEXPERIMENT * s)
 {
+    #ifdef DEBUG
+        #ifdef VERBOSE
+            dump_LIMEXPERIMENT_struct(s);
+        #endif
+    #endif
+
     // Create a dictionary
     PyObject* d = PyDict_New();
 
@@ -348,6 +400,12 @@ PyObject* LIMEXPERIMENT_to_dict(const LIMEXPERIMENT * s)
 
 PyObject* LIMLOCALMETADATA_to_dict(const LIMLOCALMETADATA * s)
 {
+    #ifdef DEBUG
+        #ifdef VERBOSE
+            dump_LIMLOCALMETADATA_struct(s);
+        #endif
+    #endif
+
     // Create a dictionary
     PyObject* d = PyDict_New();
 
@@ -360,6 +418,63 @@ PyObject* LIMLOCALMETADATA_to_dict(const LIMLOCALMETADATA * s)
             PyFloat_FromDouble((double)s->dYPos));
     PyDict_SetItemString(d, "dZPos",
             PyFloat_FromDouble((double)s->dZPos));
+
+    // Return
+    return d;
+}
+
+PyObject* LIMBINARIES_to_dict(const LIMBINARIES * s)
+{
+    #ifdef DEBUG
+        #ifdef VERBOSE
+            dump_LIMBINARIES_struct(s);
+        #endif
+    #endif
+
+    // Create a dictionary
+    PyObject* d = PyDict_New();
+
+    // Add values
+    PyDict_SetItemString(d, "uiCount",
+            PyLong_FromLong((long)s->uiCount));
+
+    // Create a list to add the LIMEXPERIMENTLEVEL objects.
+    PyObject* l = PyList_New((Py_ssize_t) s->uiCount);
+
+    for (int i = 0; i < (Py_ssize_t) s->uiCount; i++)
+    {
+        // Map the LIMBINARYDESCRIPTOR struct to a dictionary
+        PyObject* p = LIMBINARYDESCRIPTOR_to_dict(&(s->pDescriptors[i]));
+
+        // Store it
+        PyList_SetItem(l, i, p);
+    }
+
+    // Add the list
+    PyDict_SetItemString(d, "pDescriptors", l);
+
+    // Return
+    return d;
+
+}
+
+PyObject* LIMBINARYDESCRIPTOR_to_dict(const LIMBINARYDESCRIPTOR * s)
+{
+    #ifdef DEBUG
+        #ifdef VERBOSE
+            dump_LIMBINARYDESCRIPTOR_struct(s);
+        #endif
+    #endif
+
+    // Create a dictionary
+    PyObject* d = PyDict_New();
+
+    PyDict_SetItemString(d, "wszName",
+            PyUnicode_FromWideChar((LIMWSTR)s->wszName, -1));
+    PyDict_SetItemString(d, "wszCompName",
+            PyUnicode_FromWideChar((LIMWSTR)s->wszCompName, -1));
+    PyDict_SetItemString(d, "uiColorRGB",
+            PyLong_FromLong((long)s->uiColorRGB));
 
     // Return
     return d;
@@ -411,7 +526,7 @@ void load_image_data(LIMFILEHANDLE hFile, LIMPICTURE *picture,
     if (attr.uiWidth == picture->uiWidth && attr.uiHeight == picture->uiHeight)
     {
         #ifdef DEBUG
-            printf("Using fast loading into buffer.\n");
+            printf("Using fast loading into buffer (no resampling).\n");
         #endif
 
         // Load the picture into the prepared buffer
@@ -775,4 +890,18 @@ PyObject* get_custom_data(LIMFILEHANDLE f_handle)
     // Return the list
     return l;
 
+}
+
+PyObject* get_binary_descr(LIMFILEHANDLE f_handle)
+{
+    LIMBINARIES binaries;
+    Lim_FileGetBinaryDescriptors(f_handle, &binaries);
+    return LIMBINARIES_to_dict(&binaries);
+}
+
+LIMUINT get_num_binary_descriptors(LIMFILEHANDLE f_handle)
+{
+    LIMBINARIES binaries;
+    Lim_FileGetBinaryDescriptors(f_handle, &binaries);
+    return binaries.uiCount;
 }
