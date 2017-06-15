@@ -11,7 +11,7 @@
 
 #ifdef DEBUG
 
-void dump_LIMATTRIBUTES_struct(const LIMATTRIBUTES *s)
+void c_dump_LIMATTRIBUTES_struct(const LIMATTRIBUTES *s)
 {
     printf("uiWidth             = %d\n", (long)s->uiWidth);
     printf("uiWidthBytes        = %d\n", (long)s->uiWidthBytes);
@@ -26,7 +26,7 @@ void dump_LIMATTRIBUTES_struct(const LIMATTRIBUTES *s)
     printf("uiQuality           = %d\n", (long)s->uiQuality);
 }
 
-void dump_LIMMETADATA_DESC_struct(const LIMMETADATA_DESC *s)
+void c_dump_LIMMETADATA_DESC_struct(const LIMMETADATA_DESC *s)
 {
 	printf("dTimeStart          = %f\n", (double)s->dTimeStart);
 	printf("dAngle              = %f\n", (double)s->dAngle);
@@ -48,11 +48,11 @@ void dump_LIMMETADATA_DESC_struct(const LIMMETADATA_DESC *s)
 	{
 		LIMPICTUREPLANE_DESC p = s->pPlanes[i];
 		printf("Plane %d\n", i);
-		dump_LIMPICTUREPLANE_DESC_struct(&p);
+		c_dump_LIMPICTUREPLANE_DESC_struct(&p);
 	}
 }
 
-void dump_LIMTEXTINFO_struct(const LIMTEXTINFO *s)
+void c_dump_LIMTEXTINFO_struct(const LIMTEXTINFO *s)
 {
     printf("wszImageID          = %ls\n", (LIMWSTR)s->wszImageID);
     printf("wszType             = %ls\n", (LIMWSTR)s->wszType);
@@ -71,7 +71,7 @@ void dump_LIMTEXTINFO_struct(const LIMTEXTINFO *s)
     printf("wszAppVersion       = %ls\n", (LIMWSTR)s->wszAppVersion);
 }
 
-void dump_LIMPICTUREPLANE_DESC_struct(const LIMPICTUREPLANE_DESC *s)
+void c_dump_LIMPICTUREPLANE_DESC_struct(const LIMPICTUREPLANE_DESC *s)
 {
     printf("    uiCompCount     = %d\n", (long)s->uiCompCount);
     printf("    uiColorRGB      = %d\n", (long)s->uiColorRGB);
@@ -80,24 +80,24 @@ void dump_LIMPICTUREPLANE_DESC_struct(const LIMPICTUREPLANE_DESC *s)
     printf("    dEmissionWL     = %f\n", (double)s->dEmissionWL);
 }
 
-void dump_LIMEXPERIMENTLEVEL_struct(const LIMEXPERIMENTLEVEL *s)
+void c_dump_LIMEXPERIMENTLEVEL_struct(const LIMEXPERIMENTLEVEL *s)
 {
     printf("    uiExpType       = %d\n", (long)s->uiExpType);
     printf("    uiLoopSize      = %d\n", (long)s->uiLoopSize);
     printf("    dInterval       = %f\n", (double)s->dInterval);
 }
 
-void dump_LIMEXPERIMENT_struct(const LIMEXPERIMENT *s)
+void c_dump_LIMEXPERIMENT_struct(const LIMEXPERIMENT *s)
 {
     printf("uiLevelCount        = %d\n", (long)s->uiLevelCount);
     for (int i = 0; i < LIMMAXEXPERIMENTLEVEL; i++)
     {
         LIMEXPERIMENTLEVEL l = s->pAllocatedLevels[i];
-        dump_LIMEXPERIMENTLEVEL_struct(&l);
+        c_dump_LIMEXPERIMENTLEVEL_struct(&l);
     }
 }
 
-void dump_LIMPICTURE_struct(const LIMPICTURE *s)
+void c_dump_LIMPICTURE_struct(const LIMPICTURE *s)
 {
     printf("uiWidth             = %d\n", (long)s->uiWidth);
     printf("uiHeight            = %d\n", (long)s->uiHeight);
@@ -108,7 +108,7 @@ void dump_LIMPICTURE_struct(const LIMPICTURE *s)
     printf("&pImageData         = %p\n", (void *)s->pImageData);
 }
 
-void dump_LIMLOCALMETADATA_struct(const LIMLOCALMETADATA *s)
+void c_dump_LIMLOCALMETADATA_struct(const LIMLOCALMETADATA *s)
 {
     printf("dTimeMSec           = %f\n", (double)s->dTimeMSec);
     printf("dXPos               = %f\n", (double)s->dXPos);
@@ -116,17 +116,17 @@ void dump_LIMLOCALMETADATA_struct(const LIMLOCALMETADATA *s)
     printf("dZPos               = %f\n", (double)s->dZPos);
 }
 
-void dump_LIMBINARIES_struct(const LIMBINARIES *s)
+void c_dump_LIMBINARIES_struct(const LIMBINARIES *s)
 {
     printf("uiCount             = %d\n", (long)s->uiCount);
 
     for (unsigned int i = 0; i < s->uiCount; i++)
     {
-        dump_LIMBINARYDESCRIPTOR_struct(&s->pDescriptors[i]);
+        c_dump_LIMBINARYDESCRIPTOR_struct(&s->pDescriptors[i]);
     }
 }
 
-void dump_LIMBINARYDESCRIPTOR_struct(const LIMBINARYDESCRIPTOR *s)
+void c_dump_LIMBINARYDESCRIPTOR_struct(const LIMBINARYDESCRIPTOR *s)
 {
     printf("    wszImageID      = %ls\n", (LIMWSTR)s->wszName);
     printf("    wszCompName     = %ls\n", (LIMWSTR)s->wszCompName);
@@ -142,11 +142,11 @@ void dump_LIMBINARYDESCRIPTOR_struct(const LIMBINARYDESCRIPTOR *s)
 
 ----------------------------------------------------------------------------- */
 
-PyObject* LIMATTRIBUTES_to_dict(const LIMATTRIBUTES *s)
+PyObject* c_LIMATTRIBUTES_to_dict(const LIMATTRIBUTES *s)
 {
     #ifdef DEBUG
         #ifdef VERBOSE
-            dump_LIMATTRIBUTES_struct(s);
+            c_dump_LIMATTRIBUTES_struct(s);
         #endif
     #endif
 
@@ -181,11 +181,11 @@ PyObject* LIMATTRIBUTES_to_dict(const LIMATTRIBUTES *s)
     return d;
 }
 
-PyObject* LIMMETADATA_DESC_to_dict(const LIMMETADATA_DESC *s)
+PyObject* c_LIMMETADATA_DESC_to_dict(const LIMMETADATA_DESC *s)
 {
     #ifdef DEBUG
         #ifdef VERBOSE
-            dump_LIMMETADATA_DESC_struct(s);
+            c_dump_LIMMETADATA_DESC_struct(s);
         #endif
     #endif
 
@@ -227,7 +227,7 @@ PyObject* LIMMETADATA_DESC_to_dict(const LIMMETADATA_DESC *s)
     for (int i = 0; i < (Py_ssize_t) s->uiPlaneCount; i++)
     {
         // Map the LIMPICTUREPLANE_DESC struct (plane) to a dictionary
-        PyObject* p = LIMPICTUREPLANE_DESC_to_dict(&(s->pPlanes[i]));
+        PyObject* p = c_LIMPICTUREPLANE_DESC_to_dict(&(s->pPlanes[i]));
 
         // Store it
         PyList_SetItem(l, i, p);
@@ -240,11 +240,11 @@ PyObject* LIMMETADATA_DESC_to_dict(const LIMMETADATA_DESC *s)
     return d;
 }
 
-PyObject* LIMTEXTINFO_to_dict(const LIMTEXTINFO * s)
+PyObject* c_LIMTEXTINFO_to_dict(const LIMTEXTINFO * s)
 {
     #ifdef DEBUG
         #ifdef VERBOSE
-            dump_LIMTEXTINFO_struct(s);
+            c_dump_LIMTEXTINFO_struct(s);
         #endif
     #endif
 
@@ -287,11 +287,11 @@ PyObject* LIMTEXTINFO_to_dict(const LIMTEXTINFO * s)
     return d;
 }
 
-PyObject* LIMPICTUREPLANE_DESC_to_dict(const LIMPICTUREPLANE_DESC * s)
+PyObject* c_LIMPICTUREPLANE_DESC_to_dict(const LIMPICTUREPLANE_DESC * s)
 {
     #ifdef DEBUG
         #ifdef VERBOSE
-            dump_LIMPICTUREPLANE_DESC_struct(s);
+            c_dump_LIMPICTUREPLANE_DESC_struct(s);
         #endif
     #endif
 
@@ -314,11 +314,11 @@ PyObject* LIMPICTUREPLANE_DESC_to_dict(const LIMPICTUREPLANE_DESC * s)
     return d;
 }
 
-PyObject* LIMEXPERIMENTLEVEL_to_dict(const LIMEXPERIMENTLEVEL * s)
+PyObject* c_LIMEXPERIMENTLEVEL_to_dict(const LIMEXPERIMENTLEVEL * s)
 {
     #ifdef DEBUG
         #ifdef VERBOSE
-            dump_LIMEXPERIMENTLEVEL_struct(s);
+            c_dump_LIMEXPERIMENTLEVEL_struct(s);
         #endif
     #endif
 
@@ -363,11 +363,11 @@ PyObject* LIMEXPERIMENTLEVEL_to_dict(const LIMEXPERIMENTLEVEL * s)
     return d;
 }
 
-PyObject* LIMEXPERIMENT_to_dict(const LIMEXPERIMENT * s)
+PyObject* c_LIMEXPERIMENT_to_dict(const LIMEXPERIMENT * s)
 {
     #ifdef DEBUG
         #ifdef VERBOSE
-            dump_LIMEXPERIMENT_struct(s);
+            c_dump_LIMEXPERIMENT_struct(s);
         #endif
     #endif
 
@@ -384,7 +384,7 @@ PyObject* LIMEXPERIMENT_to_dict(const LIMEXPERIMENT * s)
     for (int i = 0; i < (Py_ssize_t) s->uiLevelCount; i++)
     {
         // Map the LIMEXPERIMENTLEVEL struct to a dictionary
-        PyObject* p = LIMEXPERIMENTLEVEL_to_dict(&(s->pAllocatedLevels[i]));
+        PyObject* p = c_LIMEXPERIMENTLEVEL_to_dict(&(s->pAllocatedLevels[i]));
 
         // Store it
         PyList_SetItem(l, i, p);
@@ -398,11 +398,11 @@ PyObject* LIMEXPERIMENT_to_dict(const LIMEXPERIMENT * s)
     return d;
 }
 
-PyObject* LIMLOCALMETADATA_to_dict(const LIMLOCALMETADATA * s)
+PyObject* c_LIMLOCALMETADATA_to_dict(const LIMLOCALMETADATA * s)
 {
     #ifdef DEBUG
         #ifdef VERBOSE
-            dump_LIMLOCALMETADATA_struct(s);
+            c_dump_LIMLOCALMETADATA_struct(s);
         #endif
     #endif
 
@@ -423,11 +423,11 @@ PyObject* LIMLOCALMETADATA_to_dict(const LIMLOCALMETADATA * s)
     return d;
 }
 
-PyObject* LIMBINARIES_to_dict(const LIMBINARIES * s)
+PyObject* c_LIMBINARIES_to_dict(const LIMBINARIES * s)
 {
     #ifdef DEBUG
         #ifdef VERBOSE
-            dump_LIMBINARIES_struct(s);
+            c_dump_LIMBINARIES_struct(s);
         #endif
     #endif
 
@@ -444,7 +444,7 @@ PyObject* LIMBINARIES_to_dict(const LIMBINARIES * s)
     for (int i = 0; i < (Py_ssize_t) s->uiCount; i++)
     {
         // Map the LIMBINARYDESCRIPTOR struct to a dictionary
-        PyObject* p = LIMBINARYDESCRIPTOR_to_dict(&(s->pDescriptors[i]));
+        PyObject* p = c_LIMBINARYDESCRIPTOR_to_dict(&(s->pDescriptors[i]));
 
         // Store it
         PyList_SetItem(l, i, p);
@@ -458,11 +458,11 @@ PyObject* LIMBINARIES_to_dict(const LIMBINARIES * s)
 
 }
 
-PyObject* LIMBINARYDESCRIPTOR_to_dict(const LIMBINARYDESCRIPTOR * s)
+PyObject* c_LIMBINARYDESCRIPTOR_to_dict(const LIMBINARYDESCRIPTOR * s)
 {
     #ifdef DEBUG
         #ifdef VERBOSE
-            dump_LIMBINARYDESCRIPTOR_struct(s);
+            c_dump_LIMBINARYDESCRIPTOR_struct(s);
         #endif
     #endif
 
@@ -486,19 +486,19 @@ PyObject* LIMBINARYDESCRIPTOR_to_dict(const LIMBINARYDESCRIPTOR * s)
 
 ----------------------------------------------------------------------------- */
 
-float *get_float_pointer_to_picture_data(const LIMPICTURE * p)
+float *c_get_float_pointer_to_picture_data(const LIMPICTURE * p)
 {
     return (float *)p->pImageData;
 }
 
 
-uint16_t *get_uint16_pointer_to_picture_data(const LIMPICTURE * p)
+uint16_t *c_get_uint16_pointer_to_picture_data(const LIMPICTURE * p)
 {
     return (uint16_t *)p->pImageData;
 }
 
 
-uint8_t *get_uint8_pointer_to_picture_data(const LIMPICTURE * p)
+uint8_t *c_get_uint8_pointer_to_picture_data(const LIMPICTURE * p)
 {
     return (uint8_t *)p->pImageData;
 }
@@ -506,7 +506,7 @@ uint8_t *get_uint8_pointer_to_picture_data(const LIMPICTURE * p)
 /**
  The LIMPICTURE must be initialized already!
 */
-void load_image_data(LIMFILEHANDLE hFile, LIMPICTURE *picture,
+void c_load_image_data(LIMFILEHANDLE hFile, LIMPICTURE *picture,
     LIMLOCALMETADATA *meta, LIMUINT uiSeqIndex, LIMINT iStretchMode)
 {
     LIMATTRIBUTES attr;
@@ -546,7 +546,7 @@ void load_image_data(LIMFILEHANDLE hFile, LIMPICTURE *picture,
 
 }
 
-PyObject* get_multi_point_names(LIMFILEHANDLE f_handle, LIMUINT n_multi_points)
+PyObject* c_get_multi_point_names(LIMFILEHANDLE f_handle, LIMUINT n_multi_points)
 {
 
     // Create a list
@@ -568,7 +568,7 @@ PyObject* get_multi_point_names(LIMFILEHANDLE f_handle, LIMUINT n_multi_points)
     return l;
 }
 
-void to_rgb(LIMPICTURE *dstPicBuf, const LIMPICTURE *srcPicBuf)
+void c_to_rgb(LIMPICTURE *dstPicBuf, const LIMPICTURE *srcPicBuf)
 {
 // float point image
    if (32 == srcPicBuf->uiBitsPerComp)
@@ -681,7 +681,7 @@ void to_rgb(LIMPICTURE *dstPicBuf, const LIMPICTURE *srcPicBuf)
 
 ----------------------------------------------------------------------------- */
 
-PyObject* index_to_subscripts(LIMUINT seq_index, LIMEXPERIMENT *exp, LIMUINT *coords)
+PyObject* c_index_to_subscripts(LIMUINT seq_index, LIMEXPERIMENT *exp, LIMUINT *coords)
 {
     // Convert the linear index to coordinates the experiment coordinate system
     Lim_GetCoordsFromSeqIndex(exp, seq_index, coords);
@@ -703,13 +703,13 @@ PyObject* index_to_subscripts(LIMUINT seq_index, LIMEXPERIMENT *exp, LIMUINT *co
     return d;
 }
 
-LIMUINT subscripts_to_index(LIMEXPERIMENT *exp, LIMUINT *coords)
+LIMUINT c_subscripts_to_index(LIMEXPERIMENT *exp, LIMUINT *coords)
 {
     // Convert the point in the experiment coordinate system to a linear index
     return Lim_GetSeqIndexFromCoords(exp, coords);
 }
 
-PyObject* parse_stage_coords(LIMFILEHANDLE f_handle, LIMATTRIBUTES attr,
+PyObject* c_parse_stage_coords(LIMFILEHANDLE f_handle, LIMATTRIBUTES attr,
     int iUseAlignment)
 {
     LIMUINT uiPosCount = attr.uiSequenceCount;
@@ -745,7 +745,7 @@ PyObject* parse_stage_coords(LIMFILEHANDLE f_handle, LIMATTRIBUTES attr,
     return l;
 }
 
-PyObject* get_recorded_data_int(LIMFILEHANDLE f_handle, LIMATTRIBUTES attr)
+PyObject* c_get_recorded_data_int(LIMFILEHANDLE f_handle, LIMATTRIBUTES attr)
 {
     // Initialize a dictionary
     PyObject* d = PyDict_New();
@@ -758,7 +758,7 @@ PyObject* get_recorded_data_int(LIMFILEHANDLE f_handle, LIMATTRIBUTES attr)
     return d;
 }
 
-PyObject* get_recorded_data_double(LIMFILEHANDLE f_handle, LIMATTRIBUTES attr)
+PyObject* c_get_recorded_data_double(LIMFILEHANDLE f_handle, LIMATTRIBUTES attr)
 {
     // Sequence count
     LIMUINT uiPosCount = attr.uiSequenceCount;
@@ -809,7 +809,7 @@ PyObject* get_recorded_data_double(LIMFILEHANDLE f_handle, LIMATTRIBUTES attr)
     return d;
 }
 
-PyObject* get_recorded_data_string(LIMFILEHANDLE f_handle, LIMATTRIBUTES attr)
+PyObject* c_get_recorded_data_string(LIMFILEHANDLE f_handle, LIMATTRIBUTES attr)
 {
     // Initialize a dictionary
     PyObject* d = PyDict_New();
@@ -822,7 +822,7 @@ PyObject* get_recorded_data_string(LIMFILEHANDLE f_handle, LIMATTRIBUTES attr)
     return d;
 }
 
-PyObject* get_custom_data(LIMFILEHANDLE f_handle)
+PyObject* c_get_custom_data(LIMFILEHANDLE f_handle)
 {
     LIMUINT count = Lim_GetCustomDataCount(f_handle);
     LIMWCHAR wszName[256], wszDescription[256], wszValue[256];
@@ -892,14 +892,14 @@ PyObject* get_custom_data(LIMFILEHANDLE f_handle)
 
 }
 
-PyObject* get_binary_descr(LIMFILEHANDLE f_handle)
+PyObject* c_get_binary_descr(LIMFILEHANDLE f_handle)
 {
     LIMBINARIES binaries;
     Lim_FileGetBinaryDescriptors(f_handle, &binaries);
-    return LIMBINARIES_to_dict(&binaries);
+    return c_LIMBINARIES_to_dict(&binaries);
 }
 
-LIMUINT get_num_binary_descriptors(LIMFILEHANDLE f_handle)
+LIMUINT c_get_num_binary_descriptors(LIMFILEHANDLE f_handle)
 {
     LIMBINARIES binaries;
     Lim_FileGetBinaryDescriptors(f_handle, &binaries);

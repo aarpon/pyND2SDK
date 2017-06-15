@@ -30,7 +30,7 @@ cdef class Binary:
             raise Exception("Could not retrieve file attributes!")
 
         # Get attributes into a python dictionary
-        attrib = LIMATTRIBUTES_to_dict(&attr)
+        attrib = c_LIMATTRIBUTES_to_dict(&attr)
 
         self.width = attrib['uiWidth']
         self.height = attrib['uiHeight']
@@ -137,7 +137,7 @@ cdef class Picture:
 
         # Load the image and store it
         cdef LIMLOCALMETADATA temp_metadata
-        load_image_data(hFile, &temp_pic, &temp_metadata, seq_index,
+        c_load_image_data(hFile, &temp_pic, &temp_metadata, seq_index,
                         self.stretch_mode)
         self.picture = temp_pic
         self.metadata = temp_metadata
@@ -178,7 +178,7 @@ cdef class Picture:
         """
 
         # Get the geometry
-        metadata = LIMLOCALMETADATA_to_dict(&self.metadata)
+        metadata = c_LIMLOCALMETADATA_to_dict(&self.metadata)
 
         str = "Picture:\n" \
               "   XY = (%dx%d), sequence index = %d, components = %d\n" \
@@ -199,7 +199,7 @@ cdef class Picture:
 
     @property
     def metadata(self):
-        return LIMLOCALMETADATA_to_dict(&self.metadata)
+        return c_LIMLOCALMETADATA_to_dict(&self.metadata)
 
     def image(self, comp):
         """
@@ -311,7 +311,7 @@ cdef class nd2Reader:
             return {}
 
         # Convert the attribute structure to dict
-        return LIMATTRIBUTES_to_dict(&self.attr)
+        return c_LIMATTRIBUTES_to_dict(&self.attr)
 
     def get_binary_descriptors(self):
 
@@ -319,7 +319,7 @@ cdef class nd2Reader:
             return {}
 
         # Read the binary descriptors and return them in a dictionary
-        return get_binary_descr(self.file_handle)
+        return c_get_binary_descr(self.file_handle)
 
     def get_custom_data(self):
         """
@@ -331,7 +331,7 @@ cdef class nd2Reader:
         if not self.is_open():
             return {}
 
-        return get_custom_data(self.file_handle)
+        return c_get_custom_data(self.file_handle)
 
     def get_custom_data_count(self):
         """
@@ -359,7 +359,7 @@ cdef class nd2Reader:
             return {}
 
         # Convert the experiment structure to dict
-        return LIMEXPERIMENT_to_dict(&self.exp)
+        return c_LIMEXPERIMENT_to_dict(&self.exp)
 
     def get_geometry(self):
         """
@@ -437,14 +437,14 @@ cdef class nd2Reader:
             return {}
 
         # Convert metadata structure to dict
-        return LIMMETADATA_DESC_to_dict(&self.meta)
+        return c_LIMMETADATA_DESC_to_dict(&self.meta)
 
     def get_num_binaries(self):
 
         if not self.is_open():
             return 0
 
-        return get_num_binary_descriptors(self.file_handle)
+        return c_get_num_binary_descriptors(self.file_handle)
 
     def get_position_names(self):
         """
@@ -456,7 +456,7 @@ cdef class nd2Reader:
         if not self.is_open():
             return []
 
-        return get_multi_point_names(self.file_handle, self.positions)
+        return c_get_multi_point_names(self.file_handle, self.positions)
 
     def get_recorded_data(self):
         """
@@ -472,13 +472,13 @@ cdef class nd2Reader:
         d = {}
 
         # Retrieve the data
-        double_data = get_recorded_data_double(self.file_handle,
+        double_data = c_get_recorded_data_double(self.file_handle,
                                                self.attr)
 
-        int_data = get_recorded_data_int(self.file_handle,
+        int_data = c_get_recorded_data_int(self.file_handle,
                                          self.attr)
 
-        string_data = get_recorded_data_string(self.file_handle,
+        string_data = c_get_recorded_data_string(self.file_handle,
                                                self.attr)
 
         # Store it
@@ -504,7 +504,7 @@ cdef class nd2Reader:
         # Make sure the attributes have ben read
         self.get_attributes()
 
-        stage_coords = parse_stage_coords(self.file_handle,
+        stage_coords = c_parse_stage_coords(self.file_handle,
                                           self.attr,
                                           use_alignment)
 
@@ -528,7 +528,7 @@ cdef class nd2Reader:
             raise Exception("Could not retrieve the text info!")
 
         # Convert to dict
-        return LIMTEXTINFO_to_dict(&self.info)
+        return c_LIMTEXTINFO_to_dict(&self.info)
 
     def get_z_stack_home(self):
         """
@@ -673,7 +673,7 @@ cdef class nd2Reader:
             return None
 
         cdef LIMUINT[LIMMAXEXPERIMENTLEVEL] pExpCoords;
-        return index_to_subscripts(seq_index, &self.exp, pExpCoords)
+        return c_index_to_subscripts(seq_index, &self.exp, pExpCoords)
 
     def map_subscripts_to_index(self, time, point, plane, other = 0):
         """
@@ -698,7 +698,7 @@ cdef class nd2Reader:
         pExpCoords[2] = plane
         pExpCoords[3] = other
 
-        return subscripts_to_index(&self.exp, pExpCoords)
+        return c_subscripts_to_index(&self.exp, pExpCoords)
 
     def open(self, filename):
         """
@@ -805,7 +805,7 @@ cdef to_uint8_numpy_array(LIMPICTURE * pPicture, int n_rows, int n_cols,
                           int n_components, int component):
 
     # Get a uint8_t pointer to the picture data
-    cdef uint8_t *mat = get_uint8_pointer_to_picture_data(pPicture)
+    cdef uint8_t *mat = c_get_uint8_pointer_to_picture_data(pPicture)
 
     # Create a contiguous 1D memory view over the whole array
     n_elements = n_rows * n_cols * n_components
@@ -832,7 +832,7 @@ cdef to_uint16_numpy_array(LIMPICTURE * pPicture, int n_rows, int n_cols,
                            int n_components, int component):
 
     # Get a uint16_t pointer to the picture data
-    cdef uint16_t *mat = get_uint16_pointer_to_picture_data(pPicture)
+    cdef uint16_t *mat = c_get_uint16_pointer_to_picture_data(pPicture)
 
     # Create a contiguous 1D memory view over the whole array
     n_elements = n_rows * n_cols * n_components
@@ -859,7 +859,7 @@ cdef to_float_numpy_array(LIMPICTURE * pPicture, int n_rows, int n_cols,
                           int n_components, int component):
 
     # Get a float pointer to the picture data
-    cdef float *mat = get_float_pointer_to_picture_data(pPicture)
+    cdef float *mat = c_get_float_pointer_to_picture_data(pPicture)
 
     # Create a contiguous 1D memory view over the whole array
     n_elements = n_rows * n_cols * n_components
