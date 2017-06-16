@@ -12,13 +12,24 @@ from libc.stddef cimport wchar_t
 # Binary class
 cdef class Binary:
     cdef LIMPICTURE picture
-    cdef unsigned seq_index
-    cdef unsigned bin_index
+    cdef unsigned int seq_index
+    cdef unsigned int bin_index
     cdef unsigned int width
     cdef unsigned int height
 
-    def __cinit__(self, LIMFILEHANDLE hFile, int seq_index, int bin_index):
+    def __cinit__(self, LIMFILEHANDLE hFile, unsigned int seq_index, unsigned int bin_index):
+        """
+        Constructor of the Binary picture class.
 
+        :param hFile: handle of the open file.
+        :type hFile: LIMFILEHANDLE
+        :param seq_index: index of the sequence for which a binary map is
+                          to be load.
+        :type seq_index: unsigned int
+        :param bin_index: index of the binary map for the selected sequence
+                          to load.
+        :type bin_index: unsigned int
+        """
         cdef LIMATTRIBUTES attr
         cdef LIMPICTURE temp_pic
 
@@ -58,29 +69,38 @@ cdef class Binary:
 
     def __getitem__(self, comp):
         """
-        Return image at given component number as numpy array (memoryview).
+        Return binary image as 2D numpy array (memoryview).
 
-        Same as Binary.image(comp)
+        Same as Binary.image()
 
         @see image()
 
-        :param comp: component number
+        :param comp: can only be 0.
         :type comp: int
         :return: image
         :rtype: np.array (memoryview)
         """
-        return self.image(comp)
+        if comp != 0:
+            raise ValueError("comp can ony be 0!")
+
+        return self.image()
 
     def __repr__(self):
+        """
+        Summary of the Binary map.
+
+        :return: summary of the Binary map.
+        :rtype: string
+        """
         return self.__str__()
 
     def __str__(self):
         """
-        Display summary of the Picture.
-        :return:
-        :rtype:
-        """
+        Summary of the Binary map.
 
+        :return: summary of the Binary map.
+        :rtype: string
+        """
         str = "Binary:\n" \
               "   XY = (%dx%d), sequence index = %d, binary index = %d\n" % \
               (self.width, self.height, self.seq_index, self.bin_index)
@@ -89,13 +109,11 @@ cdef class Binary:
 
     def image(self):
         """
-        Return image at given component number as numpy array (memoryview).
-        :param comp: component number
-        :type comp: int
-        :return: image
-        :rtype: np.array (memoryview)
-        """
+        Return binary image as 2D numpy array (memoryview).
 
+        :return: image
+        :rtype: numpy.ndarray (memoryview)
+        """
         cdef np.ndarray np_arr
 
         # Create a memory view to the data
@@ -115,8 +133,23 @@ cdef class Picture:
 
     def __cinit__(self, unsigned int width, unsigned int height,
                   unsigned int bpc, unsigned int n_components,
-                 LIMFILEHANDLE hFile, int seq_index):
+                 LIMFILEHANDLE hFile, unsigned int seq_index):
+        """
+        Constructor of the Picture class.
 
+        :param width: width of the picture in pixels
+        :type width: unsigned int
+        :param height: height of the picture in pixels
+        :type height: unsigned int
+        :param bpc: bit per component
+        :type bpc: unsigned int
+        :param n_components: number of components in the sequence. 
+        :type n_components: unsigned int
+        :param hFile: handle of the open file. 
+        :type hFile: LIMFILEHANDLE
+        :param seq_index: index of the sequence to load
+        :type seq_index: LIMUINT
+        """
         if width == 0 or height == 0:
             raise ValueError("The Picture cannot have 0 size!")
 
@@ -154,7 +187,7 @@ cdef class Picture:
 
     def __getitem__(self, comp):
         """
-        Return image at given component number as numpy array (memoryview).
+        Return image at given component number as 2D numpy array (memoryview).
 
         Same as Picture.image(comp)
 
@@ -163,20 +196,26 @@ cdef class Picture:
         :param comp: component number
         :type comp: int
         :return: image
-        :rtype: np.array (memoryview)
+        :rtype: numpy.ndarray (memoryview)
         """
         return self.image(comp)
 
     def __repr__(self):
+        """
+        Return a summary string of the Picture.
+
+        :return: summary of the Picture.
+        :rtype: string
+        """
         return self.__str__()
 
     def __str__(self):
         """
-        Display summary of the Picture.
-        :return:
-        :rtype:
-        """
+        Return a summary string of the Picture.
 
+        :return: summary of the Picture.
+        :rtype: string
+        """
         # Get the geometry
         metadata = c_LIMLOCALMETADATA_to_dict(&self.metadata)
 
@@ -195,21 +234,33 @@ cdef class Picture:
 
     @property
     def n_components(self):
+        """
+        Number of components in the Picture.
+
+        :return: number of components
+        :rtype: int
+        """
         return self.n_components
 
     @property
     def metadata(self):
+        """
+        Picture (local) metadata.
+
+        :return: Picture (local) metadata.
+        :rtype: dict
+        """
         return c_LIMLOCALMETADATA_to_dict(&self.metadata)
 
     def image(self, comp):
         """
-        Return image at given component number as numpy array (memoryview).
+        Return image at given component number as 2D numpy array (memoryview).
+
         :param comp: component number
         :type comp: int
         :return: image
-        :rtype: np.array (memoryview)
+        :rtype: numpy.ndarray (memoryview)
         """
-
         cdef np.ndarray np_arr
 
         if comp >= self.n_components:
@@ -247,24 +298,35 @@ cdef class nd2Reader:
     cdef dict Pictures
 
     def __cinit__(self):
+        """
+        Constructor.
+        """
         self.file_name = ""
         self.file_handle = 0
         self.Pictures = {}
 
     def __dealloc__(self):
+        """
+        Destructor.
+        """
         # Close the file, if open
         if self.is_open():
             self.close()
 
 
     def __repr__(self):
+        """
+        Display summary of the reader state.
+        :return: summary of the reader state
+        :rtype: string
+        """
         return self.__str__()
 
     def __str__(self):
         """
         Display summary of the reader state.
-        :return:
-        :rtype:
+        :return: summary of the reader state
+        :rtype: string
         """
         if not self.is_open():
             return "nd2Reader: no file opened"
@@ -276,11 +338,11 @@ cdef class nd2Reader:
             str = "File opened: %s\n" \
                   "   XYZ = (%dx%dx%d), C = %d, T = %d\n" \
                   "   Number of positions = %d (other = %d)\n" \
-                  "   %dbit (%d significant)\n" % \
+                  "   %d bits (%d significant)\n" % \
                   (self.file_name,
                    geometry[0], geometry[1], geometry[2],
                    geometry[3], geometry[4], geometry[5],
-                   geometry[6], geometry[7], geometry[8])
+                   geometry[6], geometry[8], geometry[9])
 
             return str
 
@@ -298,7 +360,7 @@ cdef class nd2Reader:
 
     def get_attributes(self):
         """
-        Retrieves the file attributes or throws an Exception if it failed.
+        Retrieves the file attributes.
 
         The attributes are the LIMATTRIBUTES C structure mapped to a
         python dictionary.
@@ -306,7 +368,6 @@ cdef class nd2Reader:
         :return: File attributes.
         :rtype: dict
         """
-
         if not self.is_open():
             return {}
 
@@ -314,7 +375,15 @@ cdef class nd2Reader:
         return c_LIMATTRIBUTES_to_dict(&self.attr)
 
     def get_binary_descriptors(self):
+        """
+        Retrieves the file binary descriptors.
 
+        The attributes are the LIMBINARIES and LIMBINARYDESCRIPTOR C structures
+        mapped to a python dictionary.
+
+        :return: File binary descriptors.
+        :rtype: dict
+        """
         if not self.is_open():
             return {}
 
@@ -323,11 +392,15 @@ cdef class nd2Reader:
 
     def get_custom_data(self):
         """
-        Return the custom data entities stored.
-        :return: custom data
+        Return the file custom data entities.
+
+        All custom data entities are stored in a python dictionary.
+
+        @TODO Investigate how to use Lim_GetCustomDataDouble()
+
+        :return: File custom data.
         :rtype: dict
         """
-
         if not self.is_open():
             return {}
 
@@ -335,11 +408,10 @@ cdef class nd2Reader:
 
     def get_custom_data_count(self):
         """
-        Return the number of custom data entities stored.
-        :return: count of custom data
+        Return the number of file custom data entities.
+        :return: number of custom data entities.
         :rtype: int
         """
-
         if not self.is_open():
             return 0
 
@@ -347,12 +419,12 @@ cdef class nd2Reader:
 
     def get_experiment(self):
         """
-        Retrieves the experiment info or throws an Exception if it failed.
+        Retrieves the experiment info.
 
         The experiment is the LIMEXPERIMENT C structure mapped to a
         python dictionary.
 
-        :return: experiment
+        :return: File experiment info.
         :rtype: dict
         """
         if not self.is_open():
@@ -365,7 +437,7 @@ cdef class nd2Reader:
         """
         Returns the geometry of the dataset.
 
-        [x, y, z, c, t, m, o, g, b, s]
+            geometry = [x, y, z, c, t, m, o, g, b, s]
 
             x: width
             y: height
@@ -378,10 +450,9 @@ cdef class nd2Reader:
             b: bit depth
             s: significant bits
 
-        :return: geometry vector
-        :rtype: array
+        :return: Geometry vector.
+        :rtype: list
         """
-
         if not self.is_open():
             return [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
@@ -424,15 +495,14 @@ cdef class nd2Reader:
 
     def get_metadata(self):
         """
-        Retrieves the file metadata or throws an Exception if it failed.
+        Retrieves the file metadata.
 
         The metadata is the LIMMETADATA_DESC C structure mapped to a
         python dictionary.
 
-        :return: file metadata
+        :return: File metadata
         :rtype: dict
         """
-
         if not self.is_open():
             return {}
 
@@ -440,7 +510,12 @@ cdef class nd2Reader:
         return c_LIMMETADATA_DESC_to_dict(&self.meta)
 
     def get_num_binaries(self):
+        """
+        Retrieves the number of file binary masks.
 
+        :return: Number of binary masks in the file.
+        :rtype: int
+        """
         if not self.is_open():
             return 0
 
@@ -448,11 +523,11 @@ cdef class nd2Reader:
 
     def get_position_names(self):
         """
-        Return the names of the positions
-        :return: list of position names
+        Return the names of the positions.
+
+        :return: List of position names.
         :rtype: list
         """
-
         if not self.is_open():
             return []
 
@@ -461,10 +536,12 @@ cdef class nd2Reader:
     def get_recorded_data(self):
         """
         Get the recorded data and return it in a python dictionary.
-        :return: recorded data
+
+        @TODO Sort out how to use Lim_GetRecordedData{Int|String}
+
+        :return: Recorded data
         :rtype: dict
         """
-
         if not self.is_open():
             return {}
 
@@ -489,13 +566,14 @@ cdef class nd2Reader:
         # Return it
         return d
 
-    def get_stage_coordinates(self, use_alignment=0):
+    def get_stage_coordinates(self, use_alignment=False):
         """
         Get stage coordinates.
-        :param use_alignment:
-        :type use_alignment:
-        :return:
-        :rtype:
+
+        :param use_alignment: use manual alignment
+        :type use_alignment: bool
+        :return: stage coordinates (per position)
+        :rtype: list ([x y z]_n)
         """
         # Make sure the file is open
         if not self.is_open():
@@ -504,20 +582,25 @@ cdef class nd2Reader:
         # Make sure the attributes have ben read
         self.get_attributes()
 
+        # The c code takes an integer as use_alignment flag
+        if use_alignment:
+            align = 1
+        else:
+            align = 0
         stage_coords = c_parse_stage_coords(self.file_handle,
                                           self.attr,
-                                          use_alignment)
+                                          align)
 
         return stage_coords
 
     def get_text_info(self):
         """
-        Retrieves the text info or throws an Exception if it failed.
+        Retrieves the File text info.
 
         The text info is the LIMTEXTINFO C structure mapped to a
         python dictionary.
 
-        :return: file text info
+        :return: File text info
         :rtype: dict
         """
 
@@ -533,6 +616,7 @@ cdef class nd2Reader:
     def get_z_stack_home(self):
         """
         Return the Z stack home.
+
         :return: Z stack home
         :rtype: int
         """
@@ -556,27 +640,53 @@ cdef class nd2Reader:
     def is_open(self):
         """
         Checks if the file is open.
+
         :return: True if the file is open, False otherwise.
         :rtype: bool
         """
         return self.file_handle != 0
 
-    def load(self, LIMUINT time, LIMUINT point, LIMUINT plane,
+    def load(self, LIMUINT time, LIMUINT position, LIMUINT plane,
              LIMUINT other = 0, LIMUINT width=-1, LIMUINT height=-1):
-        """Loads, stores a return the picture.
-
-        :param index: index of the sequence (image) to load
-        :type height: unsigned int
-
-        :return: Picture object
-        :rtype: PyND2SDK.Picture
         """
+        Load, optionally store and return the picture.
 
+        SYNOPSIS 1:
+
+            r.load(time, position, plane, other)
+
+        SYNOPSIS 2:
+
+            r.load(time, position, plane, other, width, height)
+
+        If width and height are specified, the image is resampled on loading
+        from the original size in the file to the specified (width x height).
+
+        When using SYNOPSIS 1, the loaded Picture is cached. When using
+        SYNOPSIS 2, it is not.
+
+        :param time: time point
+        :type time: unsigned int
+        :param position: position index
+        :type position: unsigned int
+        :param plane: plane index (z level)
+        :type plane: unsigned int
+        :param other: ? (optional, default = 0)
+        :type other: unsigned int
+        :param width: width of the image (optional, if not set the value is
+                      read from the file)
+        :type width: unsigned int
+        :param height: height of the image (optional, if not set the value is
+                       read from the file)
+        :type height: unsigned int
+        :return: Picture object
+        :rtype: PyND2SDK.nd2Reader.Picture
+        """
         if not self.is_open():
             return None
 
         # Map the subs to a linear index
-        index = self.map_subscripts_to_index(time, point, plane, other)
+        index = self.map_subscripts_to_index(time, position, plane, other)
 
         # Load the Picture
         p = self.load_by_index(index, width, height)
@@ -586,13 +696,15 @@ cdef class nd2Reader:
 
     def load_binary_by_index(self, LIMUINT seq_index, LIMUINT bin_index):
         """
-        Loads and returns the binary image at given index.
-        :param index:
-        :type index:
-        :return:
-        :rtype:
-        """
+        Loads and returns the binary image at given sequence and binary indices.
 
+        :param seq_index: sequence index
+        :type seq_index: unsigned int
+        :param bin_index: binary sequence
+        :type bin_index: unsigned int
+        :return: Binay object
+        :rtype: PyND2SDK.nd2Reader.Binary
+        """
         if not self.is_open():
             return None
 
@@ -608,19 +720,28 @@ cdef class nd2Reader:
         return b
 
     def load_by_index(self, LIMUINT index, LIMUINT width=-1, LIMUINT height=-1):
-        """Loads, stores a return the picture at given index.
-
-        Optionally, it can resize to requested (width x height) on loading;
-        in this case, however, the image is not cached.
-
-        :type width: unsignded int
-        :param index: index of the sequence (image) to load
-        :type height: unsigned int
-
-        :return: Picture object
-        :rtype: PyND2SDK.Picture
         """
+        Load, optionally store and return the picture.
 
+        SYNOPSIS 1:
+
+            r.load(index)
+
+        SYNOPSIS 2:
+
+            r.load(index, width, height)
+
+        If width and height are specified, the image is resampled on loading
+        from the original size in the file to the specified (width x height).
+
+        When using SYNOPSIS 1, the loaded Picture is cached. When using
+        SYNOPSIS 2, it is not.
+
+        :param index: linear index of the sequence in the file.
+        :type index: unsigned int
+        :return: Picture object
+        :rtype: PyND2SDK.nd2Reader.Picture
+        """
         if not self.is_open():
             return None
 
@@ -664,10 +785,11 @@ cdef class nd2Reader:
     def map_index_to_subscripts(self, seq_index):
         """
         Map linear index to subscripts.
-        :param seq_index:
-        :type seq_index:
-        :return:
-        :rtype:
+
+        :param seq_index: linear sequence index
+        :type seq_index: unsigmed int
+        :return: subscripts [time, position, plane, other]
+        :rtype: list
         """
         if not self.is_open():
             return None
@@ -675,26 +797,27 @@ cdef class nd2Reader:
         cdef LIMUINT[LIMMAXEXPERIMENTLEVEL] pExpCoords;
         return c_index_to_subscripts(seq_index, &self.exp, pExpCoords)
 
-    def map_subscripts_to_index(self, time, point, plane, other = 0):
+    def map_subscripts_to_index(self, time, position, plane, other = 0):
         """
-        Map subscripts to linear index.
-        :param time:
-        :type time:
-        :param point:
-        :type point:
-        :param plane:
-        :type plane:
-        :param other:
-        :type other:
-        :return:
-        :rtype:
+        Map subscripts to linear sequence index.
+
+        :param time: time index
+        :type time: unsigned int
+        :param position: position index
+        :type position: unsigned int
+        :param plane: plane (z lavel)
+        :type plane: unsigned int
+        :param other: ?
+        :type other: unsigned int
+        :return: linear sequence
+        :rtype: int
         """
         if not self.is_open():
             return {}
 
         cdef LIMUINT[LIMMAXEXPERIMENTLEVEL] pExpCoords;
         pExpCoords[0] = time
-        pExpCoords[1] = point
+        pExpCoords[1] = position
         pExpCoords[2] = plane
         pExpCoords[3] = other
 
@@ -702,13 +825,12 @@ cdef class nd2Reader:
 
     def open(self, filename):
         """
-        Opens the file 'filename' for reading and returns the file handle.
-        :param filename: with file full path
-        :type filename: unicode string
+        Opens the file with given filename and returns the file handle.
+        :param filename: file name with full path
+        :type filename: string
         :return: file handle
         :rtype: int
         """
-
         # Make sure the string is unicode
         self.file_name = unicode(filename)
         cdef Py_ssize_t length
@@ -735,54 +857,104 @@ cdef class nd2Reader:
 
     @property
     def file_handle(self):
+        """
+        :return: File handle (0 if no file is open).
+        :rtype: int
+        """
         return self.file_handle
 
     @property
     def width(self):
+        """
+        :return: Image width in pixels.
+        :rtype: int
+        """
         return self.get_geometry()[0]
 
     @property
     def height(self):
+        """
+        :return: Image height in pixels.
+        :rtype: int
+        """
         return self.get_geometry()[1]
 
     @property
     def planes(self):
+        """
+        :return: Number of planes (z levels).
+        :rtype: int
+        """
         return self.get_geometry()[2]
 
     @property
     def channels(self):
+        """
+        :return: Number of channels.
+        :rtype: int
+        """
         return self.get_geometry()[3]
 
     @property
     def timepoints(self):
+        """
+        :return: Number of timepoints.
+        :rtype: int
+        """
         return self.get_geometry()[4]
 
     @property
     def positions(self):
+        """
+        :return: Number of positions.
+        :rtype: int
+        """
         return self.get_geometry()[5]
 
     @property
     def other(self):
+        """
+        :return: ?
+        :rtype: int
+        """
         return self.get_geometry()[6]
 
     @property
     def sequences(self):
+        """
+        :return: Total number of sequences.
+        :rtype: int
+        """
         return self.get_geometry()[7]
 
     @property
     def bits(self):
+        """
+        :return: Image bit depth.
+        :rtype: int
+        """
         return self.get_geometry()[8]
 
     @property
     def significant_bits(self):
+        """
+        :return: Image significant bit depth.
+        :rtype: int
+        """
         return self.get_geometry()[9]
 
 
 # Clean (own) memory when finalizing the array
 cdef class _finalizer:
+    """
+    Finalizer.
+    """
     cdef void *_data
 
     def __dealloc__(self):
+        """
+        Destructor.
+        """
         # The data is deleted by Lim_DestroyPicture in the
         # pLIMPICTURE destructor.
         #if self._data is not NULL:
@@ -795,15 +967,29 @@ cdef void set_base(np.ndarray arr, void *carr):
     f._data = <void*>carr
     np.set_array_base(arr, f)
 
-# Create a memoryview for the requested component from the picture data
-# stored in the LIMPICTURE structure (no copies are made of the data).
-# The view is returned and can be used an numpy array with type np.uint8.
-#
-# Please notice that if the LIMPICTURE object that owns the data is
-# destroyed, the memoryview will be invalid!!
 cdef to_uint8_numpy_array(LIMPICTURE * pPicture, int n_rows, int n_cols,
                           int n_components, int component):
-
+    """
+    Create a memoryview for the requested component from the picture data
+    stored in the LIMPICTURE structure (no copies are made of the data).
+    The view is returned and can be used an numpy array with type np.uint8.
+    
+    Please notice that if the LIMPICTURE object that owns the data is
+    destroyed, the memoryview will be invalid!!
+        
+    :param pPicture: Pointer to a LIMPICTURE structure. 
+    :type pPicture: LIMPICTURE *
+    :param n_rows: number of rows
+    :type n_rows: int
+    :param n_cols: number of columns
+    :type n_cols: int
+    :param n_components: number of components (channels) 
+    :type n_components: int
+    :param component: target component (channel)  
+    :type component: int
+    :return: memoryview on the underlying C array as 2D numpy array 
+    :rtype: numpy.ndarray
+    """
     # Get a uint8_t pointer to the picture data
     cdef uint8_t *mat = c_get_uint8_pointer_to_picture_data(pPicture)
 
@@ -822,15 +1008,29 @@ cdef to_uint8_numpy_array(LIMPICTURE * pPicture, int n_rows, int n_cols,
 
     return arr
 
-# Create a memoryview for the requested component from the picture data
-# stored in the LIMPICTURE structure (no copies are made of the data).
-# The view is returned and can be used an numpy array with type np.uint16.
-#
-# Please notice that if the LIMPICTURE object that owns the data is
-# destroyed, the memoryview will be invalid!!
 cdef to_uint16_numpy_array(LIMPICTURE * pPicture, int n_rows, int n_cols,
                            int n_components, int component):
-
+    """
+    Create a memoryview for the requested component from the picture data
+    stored in the LIMPICTURE structure (no copies are made of the data).
+    The view is returned and can be used an numpy array with type np.uint16.
+    
+    Please notice that if the LIMPICTURE object that owns the data is
+    destroyed, the memoryview will be invalid!!
+        
+    :param pPicture: Pointer to a LIMPICTURE structure. 
+    :type pPicture: LIMPICTURE *
+    :param n_rows: number of rows
+    :type n_rows: int
+    :param n_cols: number of columns
+    :type n_cols: int
+    :param n_components: number of components (channels) 
+    :type n_components: int
+    :param component: target component (channel)  
+    :type component: int
+    :return: memoryview on the underlying C array as 2D numpy array 
+    :rtype: numpy.ndarray
+    """
     # Get a uint16_t pointer to the picture data
     cdef uint16_t *mat = c_get_uint16_pointer_to_picture_data(pPicture)
 
@@ -849,15 +1049,29 @@ cdef to_uint16_numpy_array(LIMPICTURE * pPicture, int n_rows, int n_cols,
 
     return arr
 
-# Create a memoryview for the requested component from the picture data
-# stored in the LIMPICTURE structure (no copies are made of the data).
-# The view is returned and can be used an numpy array with type np.float32.
-#
-# Please notice that if the LIMPICTURE object that owns the data is
-# destroyed, the memoryview will be invalid!!
 cdef to_float_numpy_array(LIMPICTURE * pPicture, int n_rows, int n_cols,
                           int n_components, int component):
-
+    """
+    Create a memoryview for the requested component from the picture data
+    stored in the LIMPICTURE structure (no copies are made of the data).
+    The view is returned and can be used an numpy array with type np.float32.
+    
+    Please notice that if the LIMPICTURE object that owns the data is
+    destroyed, the memoryview will be invalid!!
+        
+    :param pPicture: Pointer to a LIMPICTURE structure. 
+    :type pPicture: LIMPICTURE *
+    :param n_rows: number of rows
+    :type n_rows: int
+    :param n_cols: number of columns
+    :type n_cols: int
+    :param n_components: number of components (channels) 
+    :type n_components: int
+    :param component: target component (channel)  
+    :type component: int
+    :return: memoryview on the underlying C array as 2D numpy array 
+    :rtype: numpy.ndarray
+    """
     # Get a float pointer to the picture data
     cdef float *mat = c_get_float_pointer_to_picture_data(pPicture)
 

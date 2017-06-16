@@ -3,21 +3,14 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to pyND2SDK's documentation!
-====================================
+pyND2SDK documentation
+======================
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   examples.rst
 
 The pyND2SDK module is a python/cython wrapper around the Nikon ND2 SDK v9.00 (http://www.nd2sdk.com) for Windows.
 It tries to be a thin interface on top of the SDK.
@@ -49,5 +42,11 @@ To build the pyND2SDK.nd2Reader module, execute:
 Public API
 ----------
 
-.. automodule:: pyND2SDK.nd2Reader
+.. autoclass:: pyND2SDK.nd2Reader.nd2Reader
+   :members:
+
+.. autoclass:: pyND2SDK.nd2Reader.Picture
+   :members:
+
+.. autoclass:: pyND2SDK.nd2Reader.Binary
    :members:
