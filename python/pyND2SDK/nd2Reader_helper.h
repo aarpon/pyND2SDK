@@ -55,7 +55,7 @@ PyObject* c_LIMBINARYDESCRIPTOR_to_dict(const LIMBINARYDESCRIPTOR * s);
 float *c_get_float_pointer_to_picture_data(const LIMPICTURE * p);
 uint16_t *c_get_uint16_pointer_to_picture_data(const LIMPICTURE * p);
 uint8_t *c_get_uint8_pointer_to_picture_data(const LIMPICTURE * p);
-void c_load_image_data(LIMFILEHANDLE hFile, LIMPICTURE *p, LIMLOCALMETADATA *m, LIMUINT uiSeqIndex, LIMINT iStretchMode);
+void c_load_image_data(LIMFILEHANDLE f_handle, LIMPICTURE *p, LIMLOCALMETADATA *m, LIMUINT uiSeqIndex, LIMINT iStretchMode);
 void c_to_rgb(LIMPICTURE *dstPicBuf, const LIMPICTURE *srcPicBuf);
 
 /* -----------------------------------------------------------------------------
@@ -74,5 +74,7 @@ PyObject* c_get_custom_data(LIMFILEHANDLE f_handle);
 PyObject* c_get_multi_point_names(LIMFILEHANDLE f_handle, LIMUINT n_multi_points);
 PyObject* c_get_binary_descr(LIMFILEHANDLE f_handle);
 LIMUINT c_get_num_binary_descriptors(LIMFILEHANDLE f_handle);
+PyObject* c_get_large_image_dimensions(LIMFILEHANDLE f_handle);
+PyObject* c_get_alignment_points(LIMFILEHANDLE f_handle);
 
 #endif

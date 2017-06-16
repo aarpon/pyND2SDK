@@ -506,13 +506,13 @@ uint8_t *c_get_uint8_pointer_to_picture_data(const LIMPICTURE * p)
 /**
  The LIMPICTURE must be initialized already!
 */
-void c_load_image_data(LIMFILEHANDLE hFile, LIMPICTURE *picture,
+void c_load_image_data(LIMFILEHANDLE f_handle, LIMPICTURE *picture,
     LIMLOCALMETADATA *meta, LIMUINT uiSeqIndex, LIMINT iStretchMode)
 {
     LIMATTRIBUTES attr;
 
     // Read the attributes
-    Lim_FileGetAttributes(hFile, &attr);
+    Lim_FileGetAttributes(f_handle, &attr);
 
     #ifdef DEBUG
         printf("Image size from the file attributes is (%dx%d).\n",
@@ -530,7 +530,7 @@ void c_load_image_data(LIMFILEHANDLE hFile, LIMPICTURE *picture,
         #endif
 
         // Load the picture into the prepared buffer
-        Lim_FileGetImageData(hFile, uiSeqIndex, picture, meta);
+        Lim_FileGetImageData(f_handle, uiSeqIndex, picture, meta);
     }
     else
     {
@@ -539,7 +539,7 @@ void c_load_image_data(LIMFILEHANDLE hFile, LIMPICTURE *picture,
         #endif
 
         // Load and rescale the image into the prepared buffer
-        Lim_FileGetImageRectData(hFile, uiSeqIndex, picture->uiWidth,
+        Lim_FileGetImageRectData(f_handle, uiSeqIndex, picture->uiWidth,
             picture->uiHeight, 0, 0, picture->uiWidth, picture->uiHeight,
             picture->pImageData, picture->uiWidthBytes, iStretchMode, meta);
     }
@@ -763,7 +763,9 @@ PyObject* c_get_recorded_data_double(LIMFILEHANDLE f_handle, LIMATTRIBUTES attr)
     // Sequence count
     LIMUINT uiPosCount = attr.uiSequenceCount;
 
-    printf("Processing %d sequences.\n", uiPosCount);
+    #ifdef DEBUG
+        printf("Processing %d sequences.\n", uiPosCount);
+    #endif
 
     // Load Recorded Data
     const LIMWCHAR *doubleValues[] = {L"X", L"Y", L"Z", L"Z1", L"Z2",
@@ -782,7 +784,10 @@ PyObject* c_get_recorded_data_double(LIMFILEHANDLE f_handle, LIMATTRIBUTES attr)
         if (Lim_GetRecordedDataDouble(f_handle, doubleValues[i], 0, &test) != LIM_OK)
         {
                // Continue to the next recording
-               printf("No recordings found for key %s.\n", key_names[i]);
+               #ifdef DEBUG
+                   printf("No recordings found for key %s.\n", key_names[i]);
+               #endif
+
                continue;
         }
 
@@ -799,7 +804,9 @@ PyObject* c_get_recorded_data_double(LIMFILEHANDLE f_handle, LIMATTRIBUTES attr)
         }
 
         // Add the list to the dictionary with the correct key
-        printf("Adding the list to the dictionary under key %s.\n", key_names[i]);
+        #ifdef DEBUG
+            printf("Adding the list to the dictionary under key %s.\n", key_names[i]);
+        #endif
 
         PyDict_SetItemString(d, key_names[i], l);
 
@@ -904,4 +911,96 @@ LIMUINT c_get_num_binary_descriptors(LIMFILEHANDLE f_handle)
     LIMBINARIES binaries;
     Lim_FileGetBinaryDescriptors(f_handle, &binaries);
     return binaries.uiCount;
+}
+
+PyObject* c_get_large_image_dimensions(LIMFILEHANDLE f_handle)
+{
+    // Initialize fields to 0
+    LIMUINT uiXFields = 0;
+    LIMUINT uiYFields = 0;
+    double dOverlap = 0.0;
+
+    // Initialize a dictionary
+    PyObject* d = PyDict_New();
+
+    // Retrieve from file
+    Lim_GetLargeImageDimensions(f_handle, &uiXFields, &uiYFields, &dOverlap);
+
+    // Fill the dictionary
+    PyDict_SetItemString(d, "uiXFiels", PyLong_FromLong(uiXFields));
+    PyDict_SetItemString(d, "uiYFiels", PyLong_FromLong(uiYFields));
+    PyDict_SetItemString(d, "dOverlap", PyFloat_FromDouble(dOverlap));
+
+    // Return the dictionary
+    return d;
+}
+
+PyObject* c_get_alignment_points(LIMFILEHANDLE f_handle)
+{
+    LIMUINT uiAlignmentPointsCount = 0;
+
+    // Initialize a dictionary
+    PyObject* d = PyDict_New();
+
+    // Get the number of alignment points
+    Lim_GetAlignmentPoints(f_handle, &uiAlignmentPointsCount, 0, 0, 0, 0, 0);
+
+    // Pack the alignment points into the dictionary
+    if (uiAlignmentPointsCount > 0)
+    {
+        // Allocate memory to read the positions
+        LIMUINT *point_seq_idx = (LIMUINT *)malloc(uiAlignmentPointsCount * sizeof *point_seq_idx);
+        LIMUINT *point_x = (LIMUINT *)malloc(uiAlignmentPointsCount * sizeof *point_x);
+        LIMUINT *point_y = (LIMUINT *)malloc(uiAlignmentPointsCount * sizeof *point_y);
+        double *d_point_x = (double *)malloc(uiAlignmentPointsCount * sizeof *d_point_x);
+        double *d_point_y = (double *)malloc(uiAlignmentPointsCount * sizeof *d_point_y);
+
+        // Create python lists to store the values
+        PyObject* l_seq_idx = PyList_New((Py_ssize_t) uiAlignmentPointsCount);
+        PyObject* l_x = PyList_New((Py_ssize_t) uiAlignmentPointsCount);
+        PyObject* l_y = PyList_New((Py_ssize_t) uiAlignmentPointsCount);
+        PyObject* l_dx = PyList_New((Py_ssize_t) uiAlignmentPointsCount);
+        PyObject* l_dy = PyList_New((Py_ssize_t) uiAlignmentPointsCount);
+
+        // Read the positions
+        Lim_GetAlignmentPoints(f_handle, &uiAlignmentPointsCount, point_seq_idx,
+            point_x, point_y, d_point_x, d_point_y);
+
+        // Now pack them into the lists
+        for (LIMUINT uiPoint = 0; uiPoint < uiAlignmentPointsCount; uiPoint++)
+        {
+            PyList_SetItem(l_seq_idx, uiPoint,
+                PyLong_FromLong(point_seq_idx[uiPoint]));
+
+            PyList_SetItem(l_x, uiPoint,
+                PyLong_FromLong(point_x[uiPoint]));
+
+            PyList_SetItem(l_y, uiPoint,
+                PyLong_FromLong(point_y[uiPoint]));
+
+            PyList_SetItem(l_dx, uiPoint,
+                PyFloat_FromDouble(d_point_x[uiPoint]));
+
+            PyList_SetItem(l_dy, uiPoint,
+                PyFloat_FromDouble(d_point_y[uiPoint]));
+        }
+
+        // Add the lists to the dictionary
+        PyDict_SetItemString(d, "uiAlignmentPointsSeqIdx", l_seq_idx);
+        PyDict_SetItemString(d, "uiAlignmentPointsX", l_x);
+        PyDict_SetItemString(d, "uiAlignmentPointsY", l_y);
+        PyDict_SetItemString(d, "dAlignmentPointsX", l_dx);
+        PyDict_SetItemString(d, "dAlignmentPointsY", l_dy);
+
+        // Delete the allocated memory
+        free(point_seq_idx);
+        free(point_x);
+        free(point_y);
+        free(d_point_x);
+        free(d_point_y);
+    }
+
+    // Return the dictionary
+    return d;
+
 }

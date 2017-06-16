@@ -36,7 +36,7 @@ setup(
                   include_dirs=[SDKIncludePath, get_include()],
                   libraries=['v6_w32_nd2ReadSDK'],
                   library_dirs=[SDKLibPath],
-                  define_macros=[('DEBUG', '1'), ('VERBOSE', '1')]
+                  define_macros=[('DEBUG', '1')]
                   )
     ]),
     requires=["Cython", "numpy"]

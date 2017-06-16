@@ -20,6 +20,10 @@ if __name__ == "__main__":
         print('Could not open ND2 file!')
         exit(1)
 
+    pprint(r.get_large_image_dimensions())
+
+    pprint(r.get_alignment_points())
+
     pprint(r.get_geometry())
 
     # Retrieve the attributes

@@ -56,6 +56,8 @@ cdef extern from "nd2Reader_helper.h":
     object c_get_multi_point_names(LIMFILEHANDLE f, LIMUINT n)
     LIMUINT c_get_num_binary_descriptors(LIMFILEHANDLE f)
     object c_get_binary_descr(LIMFILEHANDLE f)
+    object c_get_large_image_dimensions(LIMFILEHANDLE f)
+    object c_get_alignment_points(LIMFILEHANDLE f)
 
 cdef extern from "nd2ReadSDK.h":
 
@@ -266,6 +268,7 @@ cdef extern from "nd2ReadSDK.h":
                                               LIMINT uiCustomDataIndex,
                                               LIMWSTR wszData,
                                               LIMINT *piLength)
+
     # Get multi-point name
     LIMRESULT _Lim_GetMultipointName \
                     "Lim_GetMultipointName"(LIMFILEHANDLE hFile,
@@ -276,13 +279,21 @@ cdef extern from "nd2ReadSDK.h":
     LIMRESULT _Lim_FileGetBinaryDescriptors \
                     "Lim_FileGetBinaryDescriptors"(LIMFILEHANDLE hFile,
                                                    LIMBINARIES* pBinaries)
+
     # Get binary image
     LIMRESULT _Lim_FileGetBinary \
                     "Lim_FileGetBinary"(LIMFILEHANDLE hFile,
                                         LIMUINT uiSequenceIndex,
                                         LIMUINT uiBinaryIndex,
                                         LIMPICTURE* pPicture)
-    # @TODO: Implement python code
+
+    # Get large image dimensions
+    LIMRESULT _Lim_GetLargeImageDimensions \
+                    "Lim_GetLargeImageDimensions"(LIMFILEHANDLE hFile,
+                                                  LIMUINT* puiXFields,
+                                                  LIMUINT* puiYFields,
+                                                  double* pdOverlap)
+
     #  Read the alignment points
     LIMRESULT _Lim_GetAlignmentPoints \
             "Lim_GetAlignmentPoints"(LIMFILEHANDLE hFile,

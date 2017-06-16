@@ -358,6 +358,19 @@ cdef class nd2Reader:
 
         return self.file_handle
 
+    def get_alignment_points(self):
+        """
+        Get the alignment points.
+
+        :return: Alignment points.
+        :rtype: dict
+        """
+
+        if not self.is_open():
+            return {}
+
+        return c_get_alignment_points(self.file_handle)
+
     def get_attributes(self):
         """
         Retrieves the file attributes.
@@ -520,6 +533,19 @@ cdef class nd2Reader:
             return 0
 
         return c_get_num_binary_descriptors(self.file_handle)
+
+    def get_large_image_dimensions(self):
+        """
+        Get large image dimensions.
+
+        :return: dimensions (X and Y) and overlap.
+        :rtype: dict
+        """
+        if not self.is_open():
+            return 0
+
+        # Retrieve the dimensions and overlap
+        return c_get_large_image_dimensions(self.file_handle)
 
     def get_position_names(self):
         """
