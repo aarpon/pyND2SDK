@@ -315,3 +315,12 @@ cdef extern from "nd2ReadSDK.h":
                     "Lim_GetNextUserEvent"(LIMFILEHANDLE hFile,
                                            LIMUINT *puiNextID,
                                            LIMFILEUSEREVENT* pEventInfo)
+
+    # Set stage alignment
+    LIMRESULT _Lim_SetStageAlignment \
+                    "Lim_SetStageAlignment"(LIMFILEHANDLE hFile,
+                                            LIMUINT uiPosCount,
+                                            double* pdXSrc,
+                                            double* pdYSrc,
+                                            double* pdXDst,
+                                            double *pdYDst)
