@@ -1,4 +1,5 @@
+*.pyd
+*.pyc
 /__pycache__/
 /build/
-*.pyd
 /nd2Reader.c

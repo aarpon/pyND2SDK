@@ -133,6 +133,14 @@ void c_dump_LIMBINARYDESCRIPTOR_struct(const LIMBINARYDESCRIPTOR *s)
     printf("    uiColorRGB      = %d\n", (long)s->uiColorRGB);
 }
 
+void c_dump_LIMFILEUSEREVENT_struct(const LIMFILEUSEREVENT *s)
+{
+    printf("uiID                = %d\n", (long)s->uiID);
+    printf("dTime               = %f\n", (double)s->dTime);
+    printf("wsType              = %ls\n", (LIMWSTR)s->wsType);
+    printf("wsDescription       = %ls\n", (LIMWSTR)s->wsDescription);
+}
+
 #endif // DEBUG
 
 /* -----------------------------------------------------------------------------
@@ -475,6 +483,30 @@ PyObject* c_LIMBINARYDESCRIPTOR_to_dict(const LIMBINARYDESCRIPTOR * s)
             PyUnicode_FromWideChar((LIMWSTR)s->wszCompName, -1));
     PyDict_SetItemString(d, "uiColorRGB",
             PyLong_FromLong((long)s->uiColorRGB));
+
+    // Return
+    return d;
+}
+
+PyObject* c_LIMFILEUSEREVENT_to_dict(const LIMFILEUSEREVENT * s)
+{
+    #ifdef DEBUG
+        #ifdef VERBOSE
+            c_dump_LIMFILEUSEREVENT_struct(s);
+        #endif
+    #endif
+
+    // Create a dictionary
+    PyObject* d = PyDict_New();
+
+    PyDict_SetItemString(d, "uiID",
+            PyLong_FromLong((long)s->uiID));
+    PyDict_SetItemString(d, "dTime",
+            PyFloat_FromDouble((double)s->dTime));
+    PyDict_SetItemString(d, "wsType",
+            PyUnicode_FromWideChar((LIMWSTR)s->wsType, -1));
+    PyDict_SetItemString(d, "wsDescription",
+            PyUnicode_FromWideChar((LIMWSTR)s->wsDescription, -1));
 
     // Return
     return d;
@@ -1003,4 +1035,27 @@ PyObject* c_get_alignment_points(LIMFILEHANDLE f_handle)
     // Return the dictionary
     return d;
 
+}
+
+PyObject* c_get_user_events(LIMFILEHANDLE f_handle)
+{
+    // Initialize an empty list, since we do not know how many
+    // user event we will find.
+    PyObject* l = PyList_New((Py_ssize_t) 0);
+
+    // Instantiate needed arguments
+    LIMUINT eventIndex = 1;
+    LIMFILEUSEREVENT event;
+
+    while(Lim_GetNextUserEvent(f_handle, &eventIndex, &event) == LIM_OK)
+    {
+        // Retrieve the event
+        PyObject* d = c_LIMFILEUSEREVENT_to_dict(&event);
+
+        // Append the object at the end of the list
+        PyList_Append(l, d);
+    }
+
+    // Return the dictionary
+    return l;
 }

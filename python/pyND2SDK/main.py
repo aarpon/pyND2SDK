@@ -26,47 +26,38 @@ if __name__ == "__main__":
 
     pprint(r.get_geometry())
 
+    pprint(r.get_user_events())
+
     # Retrieve the attributes
-    attr = r.get_attributes()
-    pprint(attr)
+    pprint(r.get_attributes())
 
     # Retrieve the metadata
-    meta = r.get_metadata()
-    pprint(meta)
+    pprint(r.get_metadata())
 
     # Retrieve the text info
-    info = r.get_text_info()
-    pprint(info)
+    pprint(r.get_text_info())
 
     # Retrieve the experiment info
-    exp = r.get_experiment()
-    pprint(exp)
+    pprint(r.get_experiment())
 
     # Get recorded data
-    data = r.get_recorded_data()
-    pprint(data)
+    pprint(r.get_recorded_data())
 
     # Get custom data
-    c_data = r.get_custom_data()
-    pprint(c_data)
+    pprint(r.get_custom_data())
 
     # Custom data count
-    count = r.get_custom_data_count()
-    pprint(count)
+    pprint(r.get_custom_data_count())
 
     # Test index to subx
-    subs = r.map_index_to_subscripts(0)
-    pprint(subs)
-    index = r.map_subscripts_to_index(0, 0, 0, 0)
-    pprint(index)
+    pprint(r.map_index_to_subscripts(0))
+    pprint(r.map_subscripts_to_index(0, 0, 0, 0))
 
     # Get the coordinates
-    coords = r.get_stage_coordinates()
-    pprint(coords)
+    pprint(r.get_stage_coordinates())
 
     # Get the Z stack home
-    home = r.get_z_stack_home()
-    pprint(home)
+    pprint(r.get_z_stack_home())
 
     # Load the first image by index
     picture = r.load_by_index(0)

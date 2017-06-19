@@ -522,6 +522,21 @@ cdef class nd2Reader:
         # Convert metadata structure to dict
         return c_LIMMETADATA_DESC_to_dict(&self.meta)
 
+    def get_user_events(self):
+        """
+        Return user events stored in file.
+
+        The LIMFILEUSEREVENTs are converted into python dictionaries
+        and stored in a list.
+
+        :return: User events.
+        :rtype: list
+        """
+        if not self.is_open():
+            return []
+
+        return c_get_user_events(self.file_handle)
+
     def get_num_binaries(self):
         """
         Retrieves the number of file binary masks.

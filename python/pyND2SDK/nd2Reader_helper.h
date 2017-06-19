@@ -26,6 +26,7 @@ void c_dump_LIMPICTURE_struct(const LIMPICTURE *p);
 void c_dump_LIMLOCALMETADATA_struct(const LIMLOCALMETADATA *s);
 void c_dump_LIMBINARIES_struct(const LIMBINARIES *s);
 void c_dump_LIMBINARYDESCRIPTOR_struct(const LIMBINARYDESCRIPTOR *s);
+void c_dump_LIMFILEUSEREVENT_struct(const LIMFILEUSEREVENT *s);
 
 #endif
 
@@ -45,6 +46,7 @@ PyObject* c_LIMEXPERIMENT_to_dict(const LIMEXPERIMENT * s);
 PyObject* c_LIMLOCALMETADATA_to_dict(const LIMLOCALMETADATA * s);
 PyObject* c_LIMBINARIES_to_dict(const LIMBINARIES * s);
 PyObject* c_LIMBINARYDESCRIPTOR_to_dict(const LIMBINARYDESCRIPTOR * s);
+PyObject* c_LIMFILEUSEREVENT_to_dict(const LIMFILEUSEREVENT * s);
 
 /* -----------------------------------------------------------------------------
 
@@ -76,5 +78,6 @@ PyObject* c_get_binary_descr(LIMFILEHANDLE f_handle);
 LIMUINT c_get_num_binary_descriptors(LIMFILEHANDLE f_handle);
 PyObject* c_get_large_image_dimensions(LIMFILEHANDLE f_handle);
 PyObject* c_get_alignment_points(LIMFILEHANDLE f_handle);
+PyObject* c_get_user_events(LIMFILEHANDLE f_handle);
 
 #endif

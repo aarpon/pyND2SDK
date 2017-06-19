@@ -37,6 +37,7 @@ cdef extern from "nd2Reader_helper.h":
     object c_LIMLOCALMETADATA_to_dict(const LIMLOCALMETADATA * s)
     object c_LIMBINARIES_to_dict(const LIMBINARIES * s)
     object c_LIMBINARYDESCRIPTOR_to_dict(const LIMBINARYDESCRIPTOR * s)
+    object c_LIMFILEUSEREVENT_to_dict(const LIMFILEUSEREVENT * s)
 
     # Data functions
     float * c_get_float_pointer_to_picture_data(LIMPICTURE * p)
@@ -58,6 +59,7 @@ cdef extern from "nd2Reader_helper.h":
     object c_get_binary_descr(LIMFILEHANDLE f)
     object c_get_large_image_dimensions(LIMFILEHANDLE f)
     object c_get_alignment_points(LIMFILEHANDLE f)
+    object c_get_user_events(LIMFILEHANDLE f)
 
 cdef extern from "nd2ReadSDK.h":
 
@@ -141,6 +143,10 @@ cdef extern from "nd2ReadSDK.h":
 
     # Struct LIMBINARYDESCRIPTOR
     ctypedef struct LIMBINARYDESCRIPTOR:
+        pass
+
+    # Struct LIMFILEUSEREVENT
+    ctypedef struct LIMFILEUSEREVENT:
         pass
 
     # Open file for reading (and return file handle)
@@ -294,7 +300,7 @@ cdef extern from "nd2ReadSDK.h":
                                                   LIMUINT* puiYFields,
                                                   double* pdOverlap)
 
-    #  Read the alignment points
+    # Read the alignment points
     LIMRESULT _Lim_GetAlignmentPoints \
             "Lim_GetAlignmentPoints"(LIMFILEHANDLE hFile,
                                      LIMUINT* puiPosCount,
@@ -304,3 +310,8 @@ cdef extern from "nd2ReadSDK.h":
                                      double *pdXPos,
                                      double *pdYPos)
 
+    # Get next user event
+    LIMRESULT _Lim_GetNextUserEvent \
+                    "Lim_GetNextUserEvent"(LIMFILEHANDLE hFile,
+                                           LIMUINT *puiNextID,
+                                           LIMFILEUSEREVENT* pEventInfo)
