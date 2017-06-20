@@ -257,6 +257,20 @@ class TestFileOne(unittest.TestCase):
         self.assertEqual(self.info['wszOptics'], "Plan Fluor 100x Oil DIC H N2")
         self.assertEqual(self.info['wszAppVersion'], "4.13.00 (Build 914)")
 
+    def testReadGeometry(self):
+        self.assertEqual(self.reader.get_geometry(),
+                         [1024, 1024, 1, 3, 1, 1, 0, 1, 16, 12])
+
+    def testReadExperiment(self):
+        exp = self.reader.get_experiment()
+        self.assertEqual(exp['pAllocatedLevels'], [])
+        self.assertEqual(exp['uiLevelCount'], 0)
+
+    def testGetStageCoordinates(self):
+        coords = self.reader.get_stage_coordinates()
+        self.assertEqual(len(coords), 1)
+        self.assertAlmostEqual(coords[0], [3918.5, -10112.4, 671.1005])
+
     def tearDown(self):
         self.reader.close()
         self.assertFalse(self.reader.is_open())
