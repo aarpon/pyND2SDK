@@ -25,6 +25,10 @@ Download and extract the Nikon ND2 SDK from http://www.nd2sdk.com. You will need
 
 Now set the environment variable `SDKRootPath` to point to the extracted `SDK` folder.
 
+Please notice that you *might* have to install the Microsoft Visual C++ 2008 SP1 Redistributable Package:
+   * x86: https://www.microsoft.com/en-us/download/details.aspx?id=5582
+   * x64: https://www.microsoft.com/en-us/download/confirmation.aspx?id=2092
+
 Clone the pyND2SDK repository
 .............................
 
