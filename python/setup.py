@@ -16,6 +16,16 @@ from pyND2SDK.settings import SDKIncludePath, SDKLibPath
 # For exceptionally verbose output, set:
 #
 #     define_macros=[('DEBUG', '1'), ('VERBOSE', '1')]
+#
+# Moreover, change the line:
+#
+#    DEF DEBUG = False
+#
+# into:
+#
+#    DEF DEBUG = True
+#
+# in nd2Reader.pyx.
 
 
 setup(
@@ -36,7 +46,7 @@ setup(
                   include_dirs=[SDKIncludePath, get_include()],
                   libraries=['v6_w32_nd2ReadSDK'],
                   library_dirs=[SDKLibPath],
-                  define_macros=[('DEBUG', '1')]
+                  define_macros=[]
                   )
     ]),
     requires=["Cython", "numpy"]

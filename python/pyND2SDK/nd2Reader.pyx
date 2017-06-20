@@ -8,6 +8,7 @@ np.import_array()
 # from libc.stdlib cimport free
 from libc.stddef cimport wchar_t
 
+DEF DEBUG = False
 
 # Binary class
 cdef class Binary:
@@ -63,8 +64,10 @@ cdef class Binary:
         When the Picture object is destroyed, we make sure
         to destroy also the LIM picture it refers to.
         """
-        print("Deleting binary picture %d for sequence %d" %
-              (self.bin_index, self.seq_index))
+        if DEBUG:
+            print("Deleting binary picture %d for sequence %d" %
+                  (self.bin_index, self.seq_index))
+
         _Lim_DestroyPicture(&self.picture)
 
     def __getitem__(self, comp):
@@ -182,7 +185,9 @@ cdef class Picture:
         When the Picture object is destroyed, we make sure
         to destroy also the LIM picture it refers to.
         """
-        print("Deleting picture for sequence " + str(self.seq_index) + ".\n")
+        if DEBUG:
+            print("Deleting picture for sequence " + str(self.seq_index) + ".\n")
+
         _Lim_DestroyPicture(&self.picture)
 
     def __getitem__(self, comp):
@@ -346,14 +351,27 @@ cdef class nd2Reader:
 
             return str
 
+    def clear_cache(self):
+        """
+        Clears all loaded Pictures from the cache.
+        """
+        self.Pictures.clear()
+
     def close(self):
         """
         Closes the file.
         """
 
-        # Close the file
+        # Clear the cache and close the file
         if self.is_open():
-            print("Closing file " + self.file_name + ".\n")
+
+            # Clear cache
+            self.clear_cache()
+
+            # Close file
+            if DEBUG:
+                print("Closing file " + self.file_name + ".\n")
+
             self.file_handle = _Lim_FileClose(self.file_handle)
 
         return self.file_handle
@@ -788,7 +806,8 @@ cdef class nd2Reader:
 
         # If the image was loaded already, return it from the cache
         if index in self.Pictures and width == -1 and height == -1:
-            print("Returning picture from cache.")
+            if DEBUG:
+                print("Returning picture from cache.")
             return self.Pictures[index]
 
         # Get the attributes
@@ -815,10 +834,12 @@ cdef class nd2Reader:
 
         # Store the picture if full size
         if store:
-            print("Adding Picture to the cache.")
+            if DEBUG:
+                print("Adding Picture to the cache.")
             self.Pictures[index] = p
         else:
-            print("The Picture is resized and is NOT being added to the cache.")
+            if DEBUG:
+                print("The Picture is resized and is NOT being added to the cache.")
 
         # Return the Picture
         return p
