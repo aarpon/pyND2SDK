@@ -121,7 +121,10 @@ cdef class Binary:
 
         # Create a memory view to the data
         np_arr = to_uint8_numpy_array(&self.picture, self.height,
-                                      self.width, self.n_components, 0)
+                                      self.width, 1, 0)
+
+        return np_arr
+
 
 # Picture class
 cdef class Picture:
