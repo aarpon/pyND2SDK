@@ -1,5 +1,6 @@
 import os
 import unittest
+import numpy as np
 from pyND2SDK import nd2Reader
 
 
@@ -255,7 +256,7 @@ class TestFileOne(unittest.TestCase):
         self.assertEqual(self.info['wszInfo1'], "")
         self.assertEqual(self.info['wszInfo2'], "")
         self.assertEqual(self.info['wszOptics'], "Plan Fluor 100x Oil DIC H N2")
-        self.assertEqual(self.info['wszAppVersion'], "4.13.00 (Build 914)")
+        self.assertEqual(self.info['wszAppVersion'], "4.50.00 (Build 1117)")
 
     def testReadGeometry(self):
         self.assertEqual(self.reader.get_geometry(),
@@ -270,6 +271,30 @@ class TestFileOne(unittest.TestCase):
         coords = self.reader.get_stage_coordinates()
         self.assertEqual(len(coords), 1)
         self.assertAlmostEqual(coords[0], [3918.5, -10112.4, 671.1005])
+
+    def test_readData(self):
+
+        # Load the first picture
+        p = self.reader.load_by_index(0)
+        self.assertEqual(p.n_components, 3)
+        self.assertEqual(p[0][512, 512], 722)
+        self.assertEqual(p[1][512, 512], 394)
+        self.assertEqual(p[2][512, 512], 6)
+        self.assertEqual(np.sum(p[0]), 421066115)
+        self.assertEqual(np.sum(p[1]), 427714805)
+        self.assertEqual(np.sum(p[2]), 49225110)
+
+    def test_readBinary(self):
+
+        self.assertEqual(self.reader.get_num_binaries(), 2)
+        d = self.reader.get_binary_descriptors()
+        self.assertEqual(d['pDescriptors'][0]['wszName'], 'Threshold (1)')
+        self.assertEqual(d['pDescriptors'][1]['wszName'], 'Threshold (2)')
+        b = self.reader.load_binary_by_index(0, 0)
+        self.assertEqual(np.sum(b[0]), 14898305)
+        self.assertEqual(b[0][512, 512], 0)
+        self.assertEqual(b[0][0, 408], 1)
+        self.assertEqual(b[0][18, 10], 11)
 
     def tearDown(self):
         self.reader.close()
