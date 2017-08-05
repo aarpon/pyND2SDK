@@ -5,3 +5,4 @@
 /build/
 /pyND2SDK.egg-info/
 __pycache__/
+/.idea/
