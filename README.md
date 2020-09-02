@@ -2,6 +2,10 @@
 
 The **pyND2SDK** package is a python/cython wrapper around the Nikon ND2 SDK v9.00 (http://www.nd2sdk.com) for Windows. It tries to be a thin interface on top of the SDK.
 
+### Note
+
+Compatibility of pyND2SDK with the new **ND2 SDK 1.1.0.0** has not been investigated yet.
+
 ## Installation
 
 * Download and extract the Nikon ND2 SDK from http://www.nd2sdk.com.
