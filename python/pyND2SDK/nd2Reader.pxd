@@ -6,7 +6,7 @@ from libc.stddef cimport wchar_t
 from libc.stdint cimport uint16_t, uint8_t
 
 cdef extern from "Python.h":
-    wchar_t* PyUnicode_AsWideCharString(object, Py_ssize_t *)
+    wchar_t* PyUnicode_AsWideCharString(object, Py_ssize_t *) except NULL
 
 cdef extern from "wchar.h":
     int wprintf(const wchar_t *, ...)
